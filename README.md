@@ -14,6 +14,17 @@ The intended usage of this package is to translate between DWM's and HTTP reques
 
 The intended usage of this package is to be a fully-compliant [Decentralized Web Node (DWN)](https://identity.foundation/decentralized-web-node/spec), served over an HTTP interface, with a single-tenant DID owner-operator, and bidirectionally accept & send communications between DWN users and traditional backend services.
 
+...or is it...
+
+The intended usage of this package is to host a server, interfaced via HTTP (& eventually WebSockets?), which receives either [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) or classic HTTP RESTful requests, offer a programmatic handler, and subsequently forward the communication to the appropriate destination.
+
+This package makes no prescriptions on...
+- Authorization
+- DWN rule-following
+- other things...?
+
+Basically, it starts up an HTTP server, accepts requests which are intended to be DWM-compatible, performs a validation check on the data, offers a programmatic handler/callback, and then formats & forwards it on.
+
 
 ---
 

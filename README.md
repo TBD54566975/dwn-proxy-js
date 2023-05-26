@@ -1,5 +1,28 @@
 # DWN Proxy
 
+Making DWN integrations with traditional backend services easy.
+
+⚠️ UNDER DEVELOPMENT ⚠️
+
+`dwn-proxy-js` is a bidirectional proxy between [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) (a.k.a DWeb Messages or DWM's) and RESTful APIs.
+
+![Basic diagram](./images/basic-diagram.png)
+
+The intended usage of this package is to translate between DWM's and HTTP requests. 
+
+...or is it...
+
+The intended usage of this package is to be a fully-compliant [Decentralized Web Node (DWN)](https://identity.foundation/decentralized-web-node/spec), served over an HTTP interface, with a single-tenant DID owner-operator, and bidirectionally accept & send communications between DWN users and traditional backend services.
+
+
+---
+
+
+...???The primary intent of `dwm-proxy-js` is to be a translational layer between the DWN Message data structure and classic RESTful HTTP data structures. However, there are additional layers of functionality offered such 
+
+
+---
+
 `dwn-proxy` is a bidirectional JSON-RPC proxy between [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) and traditional RESTful APIs.
 
 The primary motivation behind this package is to streamline the ability for traditional back-end services that expose RESTful APIs to receive & send DWN messages (a.k.a DWeb Messages or a.k.a DWM's). The default behavior of this package is designed to prevent the leakage of DWN awareness or concepts into a downstream service.
@@ -16,6 +39,7 @@ TODO
   - and outbound 
 - is this a fully-compliant DWN or is it simply a pass-thru?
   - why not both?
+- make JSON-RPC optional -- 2nd class, it's a supported format, but not enforced
 
 
 There are actually two different approaches here

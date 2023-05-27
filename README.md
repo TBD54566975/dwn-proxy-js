@@ -6,7 +6,9 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) (a.k.a DWeb Messages or DWM's) and RESTful APIs.
 
-![Basic diagram](./images/basic-diagram.png)
+![Intro diagram](./images/intro-diagram.png)
+
+TODO: change `HTTP A` to `DPH A`
 
 The intended usage of this package is to translate between DWM's and HTTP requests. 
 
@@ -18,6 +20,14 @@ The intended usage of this package is to be a fully-compliant [Decentralized Web
 
 The intended usage of this package is to host a server, interfaced via HTTP (& eventually WebSockets?), which receives either [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) or classic HTTP RESTful requests, offer a programmatic handler, and subsequently forward the communication to the appropriate destination.
 
+...or is it...
+
+The intended usage of this package is to host an HTTP (& WebSockets) server, which...
+1. Receive DWN-compatible communication: either [DWN Messages](https://identity.foundation/decentralized-web-node/spec/#messages) or [dwn-proxy-js formatted HTTP requests](#http-structure)
+2. Perform validation
+3. Call developer-defined handler (i.e. an authentication handler)
+4. Forward the communication onto the desired destination
+
 This package makes no prescriptions on...
 - Authorization
 - DWN rule-following
@@ -25,6 +35,14 @@ This package makes no prescriptions on...
 
 Basically, it starts up an HTTP server, accepts requests which are intended to be DWM-compatible, performs a validation check on the data, offers a programmatic handler/callback, and then formats & forwards it on.
 
+...or is it...
+
+Developer defines a filter, which filters data from DWN-to-HTTP, and vice versa would add the necessary fields when going from HTTP-to-DWN.
+
+
+# dwn-proxy-js HTTP Structure (DPH???)
+
+TODO... these are requests on the right-hand-side
 
 ---
 

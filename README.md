@@ -37,6 +37,7 @@ yourMatches.add({
   // ... more matches
 });
 
+// you can also define custom parsers & auth here
 Server.start(
   PORT,
   yourMatches

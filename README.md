@@ -26,6 +26,9 @@ const yourMatches = new Matches();
 yourMatches.add({
   interface: 'Records',
   method: 'Write',
+  protocol: 'tbdex',
+  schema: 'rfq',
+  destination: 'developer.tbd.website/some-api/rfq',
   handler: (message: Message): Message => {
     // some custom handler logic
     return {...message} // you can augment this thing here

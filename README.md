@@ -17,12 +17,12 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { Message, Matches, Server } from "dwn-proxy-js";
+import { Message, Routes, Server } from "dwn-proxy-js";
 
 const PORT = 3001;
 
-const yourMatches = new Matches();
-yourMatches.add({
+const yourRoutes = new Routes();
+yourRoutes.add({
   interface: 'Records',
   method: 'Write',
   protocol: 'tbdex',
@@ -33,14 +33,14 @@ yourMatches.add({
     return {...message} // you can augment this thing here
   }
 });
-yourMatches.add({
+yourRoutes.add({
   // ... more matches
 });
 
 // you can also define custom parsers & auth here
 Server.start(
   PORT,
-  yourMatches
+  yourRoutes
 );
 ```
 
@@ -54,7 +54,7 @@ Server.start(
 
 ...
 
-## Matches
+## Routing
 
 ...
 

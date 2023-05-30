@@ -14,14 +14,6 @@ TODO: Merely source-destination mapping (based on message contents) and subseque
 
 At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to entirely abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
-## Mappings
-
-...
-
-## Optional Custom Handler
-
-...
-
 ```cli
 npm install @tbd54566975/dwn-proxy-js
 ```
@@ -33,6 +25,16 @@ import {} from "dwn-proxy-js"
 // define handler(s)
 // start server
 ```
+
+![Process diagram](./images/process-diagram.png)
+
+## Mappings
+
+...
+
+## Optional Custom Handler
+
+...
 
 ## (Optional) Configuration Handlers
 

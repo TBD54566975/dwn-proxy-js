@@ -16,27 +16,53 @@ At it's lightest, this package can act as a network router for DWM's. At it's he
 npm install @tbd54566975/dwn-proxy-js
 ```
 
+![Process diagram](./images/process-diagram.png)
+
 ```typescript
-import { Server, Matches } from "dwn-proxy-js"
+import { Message, Matches, Server } from "dwn-proxy-js";
+import http from 'http';
+
+const PORT = 3001;
+
+// this is your custom HTTP API spec for outbound messages
+const parseOutbound = (req: http.IncomingMessage): Message => {
+  return {
+    interface: 'Records',
+    method: 'Write'
+    // other things
+  };
+};
 
 const matches = new Matches()
 matches.add({
-  interface: '{DwnInterface}',
-  method: '{DwnMethod}',
-  handler: (message: DwnMessage): DwnMessage => {
+  interface: 'Records',
+  method: 'Write',
+  handler: (message: Message): Message => {
     // some custom handler logic
+    return {...message} // you can augment this thing here
   }
 })
 
-const matchesV2 = new Matches() //...???
-
-Server.start(matches)
+Server.start(
+  PORT,
+  [parseOutbound],
+  matches
+)
 ```
 
 ```typescript
+interface Message {
+  interface: string;
+  method: string;
+  protocol?: string;
+  schema?: string;
+}
+
 interface Match {
   interface: DwnInterface;
   method: DwnMethod;
+  protocol?: string;
+  schema?: string;
   did?: string; // this ought to be strongly typed
   handler?(req: Request): Request;
   destination: string; // url or DWN? or what?
@@ -44,9 +70,12 @@ interface Match {
 
 interface Server {
   port: number;
+  parsers: Array<(req: http.IncomingMessage): Message>;
   matches: Array<Match>;
 }
 ```
+
+
 
 ```typescript
 import { Server,  } from 'dwn-proxy-js'
@@ -84,7 +113,35 @@ if (isInbound) {
 }
 ```
 
+1. Parse DWM-required-contents
+      - For outbound, pass full `req` to custom parse function
+        - This way, dev's can define their own API spec
+2. If authorization, then authorize (NOTE: why is this even necessary?)
+3. Find match
+4. If match has custom handler, then call custom handler
+      - Offer try/catch for error handling, such as auth
+      - This returns a new message, which is the basis for the forward
+5. Forward request
+      - If match has HTTP methods, then call
+      - Else, `dwn.send()`
+
 ![Process diagram](./images/process-diagram.png)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant A as Requestor
+  participant P as dwn-proxy-js
+  participant B as Recipient
+
+  A->>P: Request R
+  P->>P: Parse DWM-contents
+  P->>P: Auth
+  P->>P: Find match
+  P->>P: Custom handler
+  P->>P: Forward
+  P->>B: Request R'
+```
 
 ## Matching
 

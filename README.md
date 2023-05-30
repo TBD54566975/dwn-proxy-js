@@ -4,11 +4,73 @@ Making DWN integrations with traditional backend services easy.
 
 ⚠️ UNDER DEVELOPMENT ⚠️
 
-`dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web API.
+`dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
 ![Intro diagram](./images/intro-diagram.png)
 
-The primary motivation behind this package is to streamline the ability for traditional back-end services that expose web APIs to receive & send DWN messages (a.k.a DWeb Messages or a.k.a DWM's). The default behavior of this package is designed to prevent the leakage of DWN awareness or concepts into a downstream service.
+# Usage
+
+At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can entirely abstract DWM-concepts from your backend services.
+
+```cli
+npm install @tbd54566975/dwn-proxy-js
+```
+
+```typescript
+import {} from "dwn-proxy-js"
+
+// configure single-tenant DID owner-operator
+// define handler(s)
+// start server
+```
+
+## (Optional) Configuration Handlers
+
+This package offers an interface, `DwnProxyConfiguration`, which is intended to streamline the intended processing & handling of requests.
+
+```typescript
+import {} from "dwn-proxy-js"
+
+// read config files, using imported code
+// pass config handler when starting server
+```
+
+## Inbound 
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as DWN User
+  participant P as DWN Proxy
+  participant S as Your Service
+  
+  U->>P: DWeb Message
+  P->>P: Process
+  P->>P: Your handler
+  P->>S: Invoke your API
+  S->>S: Handle
+  S->>P: Response
+  P->>P: DWM'ify Response
+  P->>U: DWM'ified response
+```
+
+## Outbound 
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as DWN User
+  participant P as DWN Proxy
+  participant S as Your Service
+  
+  S->>P: Your message
+  P->>P: Your handler
+  P->>P: Process
+  P->>U: Send DWM
+```
+
+---
+---
 
 ## Process
 
@@ -25,6 +87,8 @@ For inbound, `Process` occurs first then `Your handler` second. Four outbound, t
 Sequence diagram?
 
 Single-tenant DID owner-operator. Meaning, inbound authorization is performed. 
+
+Should we be transport-agnostic? Which is to say, the `Your handler` would/could define the forward mechanism?
 
 ```mermaid
 sequenceDiagram
@@ -43,6 +107,16 @@ sequenceDiagram
   R->>C: DWMified response
 ```
 
+OpenAPI docs for the outbound API calls?
+
+Starting to think inbound & outbound should be discrete processes... or maybe actually the library shouldn't be that prescriptive. If the developer wanted separate processes, then they could host two different instances.
+
+Motivations: developer-friendly but also security cognizant
+
+---
+
+TODO: take more things from https://github.com/TBD54566975/dwn-relay/blob/main/docs/design-doc.md
+
 # dwn-proxy-js Message (DPM)
 
 TODO... these are requests on the right-hand-side
@@ -53,13 +127,42 @@ TODO... these are requests on the right-hand-side
 }
 ```
 
----
+# Usage
 
-TODO: take more things from https://github.com/TBD54566975/dwn-relay/blob/main/docs/design-doc.md
+You can use `dwn-proxy-js` as a either a package or an executable. As a package, you have full NodeJS programmatic optionality for your custom handlers. As an executable, you must follow the [constrained JSON schema](#configuration-schema) for defining your handlers.
 
-TODO
+## As A Package
+
 ```cli
-npm install @tbd54566975/dwn-proxy@0.0.1
+npm install @tbd54566975/dwn-proxy-js@0.0.1
+```
+
+```typescript
+import {} from "dwn-proxy-js"
+
+// start server
+// define handler(s)
+```
+
+## As An Executable
+
+```json
+// contents of `config.json`
+[
+  {
+    // filter & mapping
+  }
+]
+```
+
+```cli
+npx @tbd54566975/dwn-proxy-js@0.0.1 --config ./config.json
+```
+
+### Configuration Schema
+
+```json
+{}
 ```
 
 ## Project Resources

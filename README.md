@@ -8,9 +8,19 @@ Making DWN integrations with traditional backend services easy.
 
 ![Intro diagram](./images/intro-diagram.png)
 
+TODO: Merely source-destination mapping (based on message contents) and subsequent network execution. Optional custom callback for each mapping (useful for auth, or message augmentation).
+
 # Usage
 
-At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can entirely abstract DWM-concepts from your backend services.
+At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to entirely abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
+
+## Mappings
+
+...
+
+## Optional Custom Handler
+
+...
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js

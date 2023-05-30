@@ -41,6 +41,47 @@ interface Match {
   handler?(req: Request): Request;
   destination: string; // url or DWN? or what?
 }
+
+interface Server {
+  port: number;
+  matches: Array<Match>;
+}
+```
+
+```typescript
+import { Server,  } from 'dwn-proxy-js'
+```
+
+## Assumptions
+
+- HTTP-only
+- inbound...
+  - All messages are DWM's which originate from web5-js
+    - This means `dwn-request` in the HTTP header
+  - DWN-specific things
+    - Can execute DWN-native `authorization` logic
+    - Protocol validation?
+  - Custom handlers can...
+    - Augment the message before forwarding it
+- outbound
+  - All messages contain at least the minimum contents needed to make a `dwn.send()` call
+    - destination DID
+    - interface
+    - method
+    - payload?
+    - Maybe this warrants a developer-defined function, `parseOutbound(req): DwnSendInputs`
+      - input the request
+      - output the necessary pieces to call `dwn.send()`
+  - DWN-specific things
+    - Protocol validation?
+  - Custom handlers can...
+    - Add custom auth solution
+    - Add additional DWN-specific data, such as `authorization`
+
+```typescript
+if (isInbound) {
+  dwn.authorization(message)
+}
 ```
 
 ![Process diagram](./images/process-diagram.png)
@@ -58,6 +99,10 @@ Single-tenant DID owner-operator. Meaning, inbound authorization is performed. ?
 Should we be transport-agnostic? Which is to say, the `Your handler` would/could define the forward mechanism?
 
 OpenAPI docs for the outbound API calls?
+
+Why even have the inbound and outbound within the same process? (b/c of DWN Protocols)
+
+Inbound messages can execute the DWN-specific `authorization` validation
 
 ---
 

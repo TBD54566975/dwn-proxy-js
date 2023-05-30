@@ -12,8 +12,6 @@ Making DWN integrations with traditional backend services easy.
 
 At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
-![Process diagram](./images/process-diagram.png)
-
 ```cli
 npm install @tbd54566975/dwn-proxy-js
 ```
@@ -23,20 +21,6 @@ import { Message, Matches, Server } from "dwn-proxy-js";
 import http from 'http';
 
 const PORT = 3001;
-
-// this is your custom HTTP API spec for outbound messages
-const yourParser = (req: http.IncomingMessage): Message => {
-  return {
-    interface: 'Records',
-    method: 'Write'
-    // other things
-  };
-};
-
-const yourAuth = (req: http.IncomingMessage): boolean => {
-  // do whatever auth solution you want
-  return true;
-}
 
 const yourMatches = new Matches();
 yourMatches.add({
@@ -53,11 +37,11 @@ yourMatches.add({
 
 Server.start(
   PORT,
-  yourParser,
-  yourAuth,
   yourMatches
 );
 ```
+
+![Process diagram](./images/process-diagram.png)
 
 ## Parsing
 

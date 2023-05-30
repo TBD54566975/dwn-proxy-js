@@ -18,7 +18,6 @@ npm install @tbd54566975/dwn-proxy-js
 
 ```typescript
 import { Message, Matches, Server } from "dwn-proxy-js";
-import http from 'http';
 
 const PORT = 3001;
 
@@ -36,7 +35,7 @@ yourMatches.add({
 });
 yourMatches.add({
   // ... more matches
-})
+});
 
 Server.start(
   PORT,

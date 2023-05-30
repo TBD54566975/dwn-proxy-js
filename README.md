@@ -8,11 +8,9 @@ Making DWN integrations with traditional backend services easy.
 
 ![Intro diagram](./images/intro-diagram.png)
 
-TODO: Merely source-destination mapping (based on message contents) and subsequent network execution. Optional custom callback for each match (useful for auth, or message augmentation).
-
 # Usage
 
-At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to entirely abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
+At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js
@@ -21,8 +19,28 @@ npm install @tbd54566975/dwn-proxy-js
 ```typescript
 import { Server, Matches } from "dwn-proxy-js"
 
-const matches = new Matches('/path/to/matches.json')
+const matches = new Matches()
+matches.add({
+  interface: '{DwnInterface}',
+  method: '{DwnMethod}',
+  handler: (message: DwnMessage): DwnMessage => {
+    // some custom handler logic
+  }
+})
+
+const matchesV2 = new Matches() //...???
+
 Server.start(matches)
+```
+
+```typescript
+interface Match {
+  interface: DwnInterface;
+  method: DwnMethod;
+  did?: string; // this ought to be strongly typed
+  handler?(req: Request): Request;
+  destination: string; // url or DWN? or what?
+}
 ```
 
 ![Process diagram](./images/process-diagram.png)

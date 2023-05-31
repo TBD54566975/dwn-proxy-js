@@ -66,6 +66,14 @@ TODO probably could offer common functions
 
 ## TODO design considerations
 
+Intended to be server side applications
+
+TODO think about examples
+
+TODO in the Route maybe make the `match` naming more explicit
+
+Instead of "Parse" maybe "Canonicalization"
+
 TODO: take more things from https://github.com/TBD54566975/dwn-relay/blob/main/docs/design-doc.md
 
 ## Project Resources

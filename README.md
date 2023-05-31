@@ -29,7 +29,7 @@ yourRoutes.add({
   schema: 'rfq',
   destination: 'developer.tbd.website/some-api/rfq',
   handler: (message: Message): Message => {
-    // some custom handler logic
+    // some custom function logic
     return {...message} // you can augment this thing here
   }
 });
@@ -44,19 +44,25 @@ Server.start(
 );
 ```
 
+## How It Works
+
 ![Process diagram](./images/process-diagram.png)
 
 ## Parsing
 
 ...
 
-## Auth
-
-...
-
 ## Routing
 
-...
+Routing is the process of mapping requests to destinations & optionally [Custom Functions](#custom-functions)
+
+## Custom Functions
+
+Custom functions allow...
+- Auth
+- Request augmentation
+
+TODO probably could offer common functions
 
 ## TODO design considerations
 

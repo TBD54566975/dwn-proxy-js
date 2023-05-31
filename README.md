@@ -48,19 +48,34 @@ Server.start(
 
 ![Process diagram](./images/process-diagram.png)
 
-## Parsing
+## 1. Standardize
 
-...
+TODO diagram: a bunch of different requests formats --> going into --> `StandardRequest` format
 
-## Routing
+Standardization is the process of translating a request into a `StandardRequest` so that we can find a [route](#2-find-route).
 
-Routing is the process of mapping requests to destinations & optionally [Custom Functions](#custom-functions)
+```typescript
+import http from 'http';
 
-## Custom Functions
+type StandardRequest = {
+  //... whatever which is absolutely necessary to properly do the mapping
+}
+
+type ParseFunction = (req: http.IncomingMessage) => StandardRequest;
+```
+
+This is where you, the developer, have the chance to define your API specification. 
+
+## 2. Find Route
+
+Routing is the process of mapping requests to destinations & optionally [Custom Functions](#3-custom-function)
+
+## 3. Custom Function
 
 Custom functions allow...
 - Auth
 - Request augmentation
+- other things???
 
 TODO probably could offer common functions
 

@@ -35,6 +35,7 @@ const app = new App();
  */
 app.inbound.records.write({ protocol: 'tbdex', schema: 'rfq' }, (msg) => {
   console.log('New inbound message received for tbdex rfq', msg);
+  // do middleware things
   return {
     path   : '/rfq',
     method : 'POST'
@@ -46,6 +47,7 @@ app.inbound.records.write({ protocol: 'tbdex', schema: 'rfq' }, (msg) => {
  */
 app.outbound.post('/quote', (req, res) => {
   console.log('New outbound request received for /quote', req, res);
+  // do middleware things
   return {
     descriptor: {
       protocol : 'tbdex',
@@ -59,6 +61,7 @@ app.outbound.post('/quote', (req, res) => {
  */
 app.inbound.records.write({ protocol: 'tbdex', schema: 'accept' }, (msg) => {
   console.log('New inbound message received for tbdex accept', msg);
+  // do middleware things
   return {
     path   : '/accept',
     method : 'POST'
@@ -70,6 +73,7 @@ app.inbound.records.write({ protocol: 'tbdex', schema: 'accept' }, (msg) => {
  */
 app.outbound.post('/confirmed', (req, res) => {
   console.log('New outbound request received for /confirmed', req, res);
+  // do middleware things
   return {
     descriptor: {
       protocol : 'tbdex',

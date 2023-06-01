@@ -7,18 +7,18 @@ app.use((req, res, next) => {
   next();
 });
 
-app.inbound.use((req, res, next) => {
+app.inbound.use((msg, next) => {
   // write middleware for all inbound requests
   next();
 });
 
 app.inbound.routes.push({
-  match: req => {
-    if (req.something)
+  match: msg => {
+    if (msg.some)
       return true;
     return false;
   },
-  use: (req, res, next) => {
+  use: (msg, next) => {
     // write middleware for the given route
     next();
   },

@@ -23,13 +23,19 @@ import { App } from './types';
 
 const app = new App();
 
+/**
+ * TODO consider something akin to the app.outbound.post('/something')
+ *    such as...
+ *    app.inbound.records.write({schema: 'rfq', protocol: 'tbdex'})
+ */
+
 app.inbound.routes.push({
-  match: req => {
-    if (req.something)
+  match: msg => {
+    if (msg.something)
       return true;
     return false;
   },
-  use: (req, res, next) => {
+  use: (msg, next) => {
     // write middleware for the given route
     next();
   },

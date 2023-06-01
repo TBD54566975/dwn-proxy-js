@@ -1,51 +1,61 @@
 import http from 'http';
 
-export type Request = http.IncomingMessage;
-export type Response = http.OutgoingMessage;
 export type NextFunction = () => void;
-
-export interface IMiddleware {
-  (req: Request, res: Response, next: NextFunction): void;
-}
-
-export interface IRoute {
-  match: (req: Request) => boolean;
-  use: IMiddleware;
-}
-
-export class Handle {
-  routes: Array<IRoute>;
-  middlewares: Array<IMiddleware>;
-
-  use = (middleware: IMiddleware) => {
-    this.middlewares.push(middleware);
-  };
-}
-
 export type DwnMessage = {
   some: string;
 }
 
-export interface IRest {
-  (req: Request, res: Response): DwnMessage;
+//#region inbound
+export interface IInboundMiddleware {
+  (message: DwnMessage, next: NextFunction): void;
 }
-
-export interface IRestRoute {
-  (path: string, rest: IRest): void
+export interface IInboundRoute {
+  match: (message: DwnMessage) => boolean;
+  use: IInboundMiddleware;
 }
+export class Inbound {
+  routes: Array<IInboundRoute>;
+  middlewares: Array<IInboundMiddleware>;
 
-export class Outbound extends Handle {
-  get: IRestRoute = (path, rest) => {
-    console.log(path, rest);
+  use = (middleware: IInboundMiddleware) => {
+    this.middlewares.push(middleware);
+  };
+}
+//#endregion
+
+//#region outbound
+export interface IOutboundMiddleware {
+  (req: http.IncomingMessage, next: NextFunction): void;
+}
+export interface IOutboundRoute {
+  match: (req: http.IncomingMessage) => boolean;
+  use: IOutboundMiddleware;
+}
+export interface IOutboundRestfulMiddleware {
+  (path: string, middleware: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
+}
+export class Outbound {
+  routes: Array<IOutboundRoute>;
+  middlewares: Array<IOutboundMiddleware>;
+
+  use = (middleware: IOutboundMiddleware) => {
+    this.middlewares.push(middleware);
   };
 
-  post: IRestRoute = (path, rest) => {
-    console.log(path, rest);
+  get: IOutboundRestfulMiddleware = (path, middleware) => {
+    console.log(path, middleware);
+  };
+
+  post: IOutboundRestfulMiddleware = (path, middleware) => {
+    console.log(path, middleware);
   };
 }
+//#endregion
+
+export type IMiddleware = IInboundMiddleware | IOutboundMiddleware;
 
 export class App {
-  inbound: Handle;
+  inbound: Inbound;
   outbound: Outbound;
   middlewares: Array<IMiddleware>;
 

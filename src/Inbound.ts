@@ -16,13 +16,13 @@ export interface IInboundDwnInterfaceMiddleware {
   write: (descriptor: DwnDescriptor, middleware: IInboundDwnMiddleware) => void;
 }
 
-export interface IInboundRoute {
-  match: (message: DwnMessage) => boolean;
-  use: IInboundDwnMiddleware;
-}
+// export interface IInboundRoute {
+//   match: (message: DwnMessage) => boolean;
+//   use: IInboundDwnMiddleware;
+// }
 
 export class Inbound {
-  routes: Array<IInboundRoute>;
+  // routes: Array<IInboundRoute>;
   middlewares: Array<IInboundMiddleware>;
 
   use = (middleware: IInboundMiddleware) => {

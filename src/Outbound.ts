@@ -6,27 +6,31 @@ export interface IOutboundMiddleware {
 }
 
 export interface IOutboundRestfulMiddleware {
-  (path: string, middleware: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
+  (req: http.IncomingMessage, res: http.OutgoingMessage): DwnMessage;
 }
 
-export interface IOutboundRoute {
-  match: (req: http.IncomingMessage) => boolean;
-  use: IOutboundMiddleware;
+export interface IOutboundMethodMiddleware {
+  (path: string, middleware: IOutboundRestfulMiddleware): void
 }
+
+// export interface IOutboundRoute {
+//   match: (req: http.IncomingMessage) => boolean;
+//   use: IOutboundRestfulMiddleware;
+// }
 
 export class Outbound {
-  routes: Array<IOutboundRoute>;
+  // routes: Array<IOutboundRoute>;
   middlewares: Array<IOutboundMiddleware>;
 
   use = (middleware: IOutboundMiddleware) => {
     this.middlewares.push(middleware);
   };
 
-  get: IOutboundRestfulMiddleware = (path, middleware) => {
+  get: IOutboundMethodMiddleware = (path, middleware) => {
     console.log(path, middleware);
   };
 
-  post: IOutboundRestfulMiddleware = (path, middleware) => {
+  post: IOutboundMethodMiddleware = (path, middleware) => {
     console.log(path, middleware);
   };
 }

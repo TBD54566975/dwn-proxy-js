@@ -23,11 +23,6 @@ import { App } from './types';
 
 const app = new App();
 
-app.inbound.use((msg, next) => {
-  // write middleware for all inbound requests
-  next();
-});
-
 app.inbound.records.write({ schema: 'rfq', protocol: 'tbdex' }, (msg, next) => {
   console.log(msg);
   next();
@@ -69,6 +64,16 @@ Right now, it's just HTTP fetch requests
 ...
 
 ## TODO design considerations
+
+/**
+ * - "I want a single port for both inbound and outbound"
+ * - "I want automatic DWM formatting parsed for me"
+ * - "I want a generic middleware which is called both inbound and outbound"
+ * - "I want a generic middleware which is called for all inbounds"
+ * - "I want a middleware which is called for a specific inbound route"
+ * - "I want to use my own auth mechanism in the middleware"
+ * - "I want my outbound request to assume the req is already as a DWM"
+ */
 
 Intended to be server side applications
 

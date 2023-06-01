@@ -8,11 +8,17 @@ export class App {
   outbound: Outbound;
   middlewares: Array<IMiddleware>;
 
+  constructor() {
+    this.inbound = new Inbound();
+    this.outbound = new Outbound();
+  }
+
   use = (middleware: IMiddleware) => {
     this.middlewares.push(middleware);
   };
 
   listen = (inboundPort: number, outboundPort: number) => {
     console.log(inboundPort, outboundPort);
+    this.inbound.listen(inboundPort);
   };
 }

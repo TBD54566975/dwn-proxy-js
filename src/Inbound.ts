@@ -3,6 +3,7 @@ import {
   DwnDescriptor,
   ForwardHttp,
   NextFunction } from './types.js';
+import HttpServer from './HttpServer.js';
 
 export interface IInboundMiddleware {
   (message: DwnMessage, next: NextFunction): void;
@@ -21,7 +22,7 @@ export interface IInboundDwnInterfaceMiddleware {
 //   use: IInboundDwnMiddleware;
 // }
 
-export class Inbound {
+export class Inbound extends HttpServer {
   // routes: Array<IInboundRoute>;
   middlewares: Array<IInboundMiddleware>;
 

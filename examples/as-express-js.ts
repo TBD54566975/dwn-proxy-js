@@ -24,6 +24,11 @@ app.inbound.routes.push({
   },
 });
 
+app.inbound.records.write({ schema: 'rfq', protocol: 'tbdex' }, (msg, next) => {
+  console.log(msg);
+  next();
+});
+
 app.outbound.get('/hello-world', (req, res) => {
   // write middleware for the given outbound request
   console.log(req, res);
@@ -32,7 +37,7 @@ app.outbound.get('/hello-world', (req, res) => {
   };
 });
 
-app.outbound.post('/hello-world', (req, res) => {
+app.outbound.post('/quote', (req, res) => {
   // write middleware for the given outbound request
   console.log(req, res);
   return {

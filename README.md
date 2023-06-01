@@ -23,34 +23,21 @@ import { App } from './types';
 
 const app = new App();
 
-/**
- * TODO consider something akin to the app.outbound.post('/something')
- *    such as...
- *    app.inbound.records.write({schema: 'rfq', protocol: 'tbdex'})
- */
+// TODO okay now I'm wondering... do I need to differentiate inbound vs outbound?
+// could just do app.records.write() is assumed inbound
+// and app.post('/quote') is assumed outbound
 
-app.inbound.routes.push({
-  match: msg => {
-    if (msg.something)
-      return true;
-    return false;
-  },
-  use: (msg, next) => {
-    // write middleware for the given route
-    next();
-  },
+app.inbound.records.write({ schema: 'rfq', protocol: 'tbdex' }, (msg, next) => {
+  console.log(msg);
+  next();
 });
 
-app.outbound.routes.push({
-  match: req => {
-    if (req.something)
-      return true;
-    return false;
-  },
-  use: (req, res, next) => {
-    // write middleware for the given route
-    next();
-  },
+app.outbound.post('/quote', (req, res) => {
+  // write middleware for the given outbound request
+  console.log(req, res);
+  return {
+    some: 'dwm'
+  };
 });
 
 const INBOUND_PORT = 3000;
@@ -62,46 +49,29 @@ app.listen(INBOUND_PORT, OUTBOUND_PORT);
 
 ![Inbound](./images/how-it-works.png)
 
-## 1. Standardize
+## DWN Process
 
-TODO diagram: a bunch of different requests formats --> going into --> `StandardRequest` format
+...
 
-Standardization is the process of translating a request into a `StandardRequest` so that we can find a [route](#2-find-route).
+## Middleware
 
-```typescript
-import http from 'http';
-
-type StandardRequest = {
-  //... whatever which is absolutely necessary to properly do the mapping
-}
-
-type ParseFunction = (req: http.IncomingMessage) => StandardRequest;
-```
-
-This is where you, the developer, have the chance to define your API specification. 
-
-## 2. Find Route
-
-Routing is the process of mapping requests to destinations & optionally [Custom Functions](#3-custom-function)
-
-## 3. Custom Function
-
-Custom functions allow...
 - Auth
 - Request augmentation
 - other things???
 
-TODO probably could offer common functions
+...
+
+## Route
+
+Right now, it's just HTTP fetch requests
+
+...
 
 ## TODO design considerations
 
 Intended to be server side applications
 
 TODO think about examples
-
-TODO in the Route maybe make the `match` naming more explicit
-
-Instead of "Parse" maybe "Canonicalization"
 
 TODO: take more things from https://github.com/TBD54566975/dwn-relay/blob/main/docs/design-doc.md
 

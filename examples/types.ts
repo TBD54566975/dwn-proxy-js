@@ -4,10 +4,17 @@ export type NextFunction = () => void;
 export type DwnMessage = {
   some: string;
 }
+export type DwnDescriptor = {
+  schema: string;
+  protocol: string;
+}
 
 //#region inbound
 export interface IInboundMiddleware {
   (message: DwnMessage, next: NextFunction): void;
+}
+export interface IInboundDwnMiddleware {
+  write: (descriptor: DwnDescriptor, middleware: IInboundMiddleware) => void;
 }
 export interface IInboundRoute {
   match: (message: DwnMessage) => boolean;
@@ -20,19 +27,25 @@ export class Inbound {
   use = (middleware: IInboundMiddleware) => {
     this.middlewares.push(middleware);
   };
+
+  records: IInboundDwnMiddleware = {
+    write: (descriptor, middleware) => {
+      console.log(descriptor, middleware);
+    }
+  };
 }
 //#endregion
 
 //#region outbound
 export interface IOutboundMiddleware {
-  (req: http.IncomingMessage, next: NextFunction): void;
+  (req: http.IncomingMessage, res: http.OutgoingMessage, next: NextFunction): void;
+}
+export interface IOutboundRestfulMiddleware {
+  (path: string, middleware: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
 }
 export interface IOutboundRoute {
   match: (req: http.IncomingMessage) => boolean;
   use: IOutboundMiddleware;
-}
-export interface IOutboundRestfulMiddleware {
-  (path: string, middleware: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
 }
 export class Outbound {
   routes: Array<IOutboundRoute>;

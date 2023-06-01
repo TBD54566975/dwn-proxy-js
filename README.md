@@ -19,31 +19,37 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { Message, Routes, Server } from "dwn-proxy-js";
+import { App } from './types';
 
-const PORT = 3001;
+const app = new App();
 
-const yourRoutes = new Routes();
-yourRoutes.add({
-  interface: 'Records',
-  method: 'Write',
-  protocol: 'tbdex',
-  schema: 'rfq',
-  destination: 'developer.tbd.website/some-api/rfq',
-  handler: (message: Message): Message => {
-    // some custom function logic
-    return {...message} // you can augment this thing here
-  }
-});
-yourRoutes.add({
-  // ... more matches
+app.inbound.routes.push({
+  match: req => {
+    if (req.something)
+      return true;
+    return false;
+  },
+  use: (req, res, next) => {
+    // write middleware for the given route
+    next();
+  },
 });
 
-// you can also define custom parsers & auth here
-Server.start(
-  PORT,
-  yourRoutes
-);
+app.outbound.routes.push({
+  match: req => {
+    if (req.something)
+      return true;
+    return false;
+  },
+  use: (req, res, next) => {
+    // write middleware for the given route
+    next();
+  },
+});
+
+const INBOUND_PORT = 3000;
+const OUTBOUND_PORT = 3001;
+app.listen(INBOUND_PORT, OUTBOUND_PORT);
 ```
 
 ## How It Works

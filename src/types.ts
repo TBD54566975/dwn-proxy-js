@@ -1,20 +1,19 @@
-import { DwnInterfaceName, DwnMethodName } from '@tbd54566975/dwn-sdk-js';
+// TODO all of this is stubbed in
 
-export enum Protocol {
-  TBDex = 'TBDex'
+export type NextFunction = () => void;
+
+export type ForwardHttp = {
+  path: string;
+  method: string;
+  // headers: any;
+  // body: any;
+};
+
+export type DwnDescriptor = {
+  schema: string;
+  protocol: string;
 }
 
-// TODO these don't belong here, they belong in a dedicated @types/dwn package
 export type DwnMessage = {
-  descriptor: {
-    interface: DwnInterfaceName;
-    method: DwnMethodName;
-    protocol: Protocol;
-  };
-  authorization: any;
-}
-
-export type MultiTenantDwm = {
-  target: string;
-  message: DwnMessage;
+  descriptor: DwnDescriptor;
 }

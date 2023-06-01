@@ -23,9 +23,10 @@ import { App } from './types';
 
 const app = new App();
 
-// TODO okay now I'm wondering... do I need to differentiate inbound vs outbound?
-// could just do app.records.write() is assumed inbound
-// and app.post('/quote') is assumed outbound
+app.inbound.use((msg, next) => {
+  // write middleware for all inbound requests
+  next();
+});
 
 app.inbound.records.write({ schema: 'rfq', protocol: 'tbdex' }, (msg, next) => {
   console.log(msg);

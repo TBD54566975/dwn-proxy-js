@@ -6,11 +6,13 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
-![Intro diagram](./images/intro-diagram.png)
+![Intro diagram](./images/intro.png)
 
 # Usage
 
 At it's lightest, this package can act as a network router for DWM's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
+
+TODO: explain what DWN-specific things this does for you
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js
@@ -46,7 +48,7 @@ Server.start(
 
 ## How It Works
 
-![Process diagram](./images/process-diagram.png)
+![Inbound](./images/how-it-works.png)
 
 ## 1. Standardize
 

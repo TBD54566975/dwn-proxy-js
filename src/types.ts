@@ -2,13 +2,6 @@
 
 export type NextFunction = () => void;
 
-export type ForwardHttp = {
-  path: string;
-  method: string;
-  // headers: any;
-  // body: any;
-};
-
 export type DwnDescriptor = {
   schema: string;
   protocol: string;
@@ -16,4 +9,5 @@ export type DwnDescriptor = {
 
 export type DwnMessage = {
   descriptor: DwnDescriptor;
+  data: any;
 }

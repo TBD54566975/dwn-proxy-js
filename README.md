@@ -19,83 +19,42 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { App } from '@tbd54566975/dwn-proxy-js';
-
-/**
- * 1. DWN --> rfq --> PFI
- * 2. DWN <-- quote <-- PFI
- * 3. DWN --> accept --> PFI
- * 4. DWN <-- confirmed <-- PFI
- */
+import { App } from '../src/main';
 
 const app = new App();
 
-/**
- * 1. DWN --> rfq --> PFI
- */
-app.inbound.records.write({ protocol: 'tbdex', schema: 'rfq' }, (msg) => {
-  console.log('New inbound message received for tbdex rfq', msg);
-  // do middleware things
-  return {
-    path   : '/rfq',
-    method : 'POST'
-  };
-});
+// simple inbound route
+const match = { protocol: 'tbdex', schema: 'offer' };
+const route = { path: '/some/api/offer', method: 'GET' };
+app.inbound.records.query(match, route);
 
-/**
- * 2. DWN <-- quote <-- PFI
- */
-app.outbound.post('/quote', (req, res) => {
-  console.log('New outbound request received for /quote', req, res);
-  // do middleware things
-  return {
-    descriptor: {
-      protocol : 'tbdex',
-      schema   : 'quote'
-    }
-  };
-});
+// inbound route with middleware
+app.inbound.records.write(
+  { protocol: 'tbdex', schema: 'rfq' },
+  { path: '/some/api/rfq', method: 'POST' },
+  msg => {
+    return {
+      hello : msg.data.hello,
+      world : msg.data.world
+    };
+  });
 
-/**
- * 3. DWN --> accept --> PFI
- */
-app.inbound.records.write({ protocol: 'tbdex', schema: 'accept' }, (msg) => {
-  console.log('New inbound message received for tbdex accept', msg);
-  // do middleware things
-  return {
-    path   : '/accept',
-    method : 'POST'
-  };
-});
+// simple outbound route
+app.outbound.post('/some/api/quote');
 
-/**
- * 4. DWN <-- confirmed <-- PFI
- */
-app.outbound.post('/confirmed', (req, res) => {
-  console.log('New outbound request received for /confirmed', req, res);
-  // do middleware things
+//outbound route with middleware
+app.outbound.post('/some/api/status', (req, res) => {
+  // do some middleware things
   return {
     descriptor: {
       protocol : 'tbdex',
-      schema   : 'confirmed'
+      schema   : 'status'
+    },
+    data: {
+      something: 'else'
     }
   };
 });
-
-//#region middlewares
-app.use((req, _, next) => {
-  console.log('New request recieved', req.path);
-  next();
-});
-app.inbound.use((msg, next) => {
-  console.log('New inbound message received', msg);
-  next();
-});
-app.outbound.use((req, res, next) => {
-  console.log('New outbound request received');
-  next();
-});
-//#endregion
 
 const INBOUND_PORT = 3000;
 const OUTBOUND_PORT = 3001;
@@ -134,6 +93,8 @@ Right now, it's just HTTP fetch requests
  * - "I want a middleware which is called for a specific inbound route"
  * - "I want to use my own auth mechanism in the middleware"
  * - "I want my outbound request to assume the req is already as a DWM"
+ * - "I want my inbound http requests to be auth'd with my auth solution"
+ * - "I don't want to route a particular inbound message, and instead control the response"
  */
 
 Intended to be server side applications

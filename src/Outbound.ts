@@ -1,16 +1,17 @@
 import http from 'http';
-import { DwnMessage, NextFunction } from './types.js';
+import { DwnMessage } from './types.js';
 
-export interface IOutboundMiddleware {
-  (req: http.IncomingMessage, res: http.OutgoingMessage, next: NextFunction): void;
-}
+// export interface IOutboundMiddleware {
+//   (req: http.IncomingMessage, res: http.OutgoingMessage, next: NextFunction): void;
+// }
 
 export interface IOutboundRestfulMiddleware {
   (req: http.IncomingMessage, res: http.OutgoingMessage): DwnMessage;
 }
 
 export interface IOutboundMethodMiddleware {
-  (path: string, middleware: IOutboundRestfulMiddleware): void
+  (path: string,
+    middleware?: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
 }
 
 // export interface IOutboundRoute {
@@ -20,15 +21,15 @@ export interface IOutboundMethodMiddleware {
 
 export class Outbound {
   // routes: Array<IOutboundRoute>;
-  middlewares: Array<IOutboundMiddleware>;
+  // middlewares: Array<IOutboundMiddleware>;
 
-  use = (middleware: IOutboundMiddleware) => {
-    this.middlewares.push(middleware);
-  };
+  // use = (middleware: IOutboundMiddleware) => {
+  //   this.middlewares.push(middleware);
+  // };
 
-  get: IOutboundMethodMiddleware = (path, middleware) => {
-    console.log(path, middleware);
-  };
+  // get: IOutboundMethodMiddleware = (path, middleware) => {
+  //   console.log(path, middleware);
+  // };
 
   post: IOutboundMethodMiddleware = (path, middleware) => {
     console.log(path, middleware);

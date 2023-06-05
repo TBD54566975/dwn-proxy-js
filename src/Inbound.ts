@@ -1,20 +1,28 @@
 import {
   DwnMessage,
-  DwnDescriptor,
-  ForwardHttp,
-  NextFunction } from './types.js';
+  DwnDescriptor } from './types.js';
 import HttpServer from './HttpServer.js';
 
-export interface IInboundMiddleware {
-  (message: DwnMessage, next: NextFunction): void;
+export type HttpRoute = {
+  path: string;
+  method: string;
+  // headers: any;
+  // body: any;
+};
+
+// export interface IInboundMiddleware {
+//   (message: DwnMessage, next: NextFunction): void;
+// }
+
+export interface IInboundDwnInterface {
+  (descriptor: DwnDescriptor,
+    route: HttpRoute,
+    middleware?: ((message: DwnMessage) => any)): void;
 }
 
-export interface IInboundDwnMiddleware {
-  (message: DwnMessage): ForwardHttp;
-}
-
-export interface IInboundDwnInterfaceMiddleware {
-  write: (descriptor: DwnDescriptor, middleware: IInboundDwnMiddleware) => void;
+export interface IRecords {
+  write: IInboundDwnInterface;
+  query: IInboundDwnInterface;
 }
 
 // export interface IInboundRoute {
@@ -24,15 +32,18 @@ export interface IInboundDwnInterfaceMiddleware {
 
 export class Inbound extends HttpServer {
   // routes: Array<IInboundRoute>;
-  middlewares: Array<IInboundMiddleware>;
+  // middlewares: Array<IInboundMiddleware>;
 
-  use = (middleware: IInboundMiddleware) => {
-    this.middlewares.push(middleware);
-  };
+  // use = (middleware: IInboundMiddleware) => {
+  //   this.middlewares.push(middleware);
+  // };
 
-  records: IInboundDwnInterfaceMiddleware = {
-    write: (descriptor, middleware) => {
-      console.log(descriptor, middleware);
+  records: IRecords = {
+    write: (descriptor, route, middleware) => {
+      console.log(descriptor, route, middleware);
+    },
+    query: (descriptor, route, middleware) => {
+      console.log(descriptor, route, middleware);
     }
   };
 }

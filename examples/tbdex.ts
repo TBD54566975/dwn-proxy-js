@@ -61,20 +61,20 @@ app.outbound.post('/confirmed', (req, res) => {
   };
 });
 
-//#region middlewares
-app.use((req, _, next) => {
-  console.log('New request recieved', req.path);
-  next();
-});
-app.inbound.use((msg, next) => {
-  console.log('New inbound message received', msg);
-  next();
-});
-app.outbound.use((req, res, next) => {
-  console.log('New outbound request received');
-  next();
-});
-//#endregion
+// //#region middlewares
+// app.use((req, _, next) => {
+//   console.log('New request recieved', req.path);
+//   next();
+// });
+// app.inbound.use((msg, next) => {
+//   console.log('New inbound message received', msg);
+//   next();
+// });
+// app.outbound.use((req, res, next) => {
+//   console.log('New outbound request received');
+//   next();
+// });
+// //#endregion
 
 const INBOUND_PORT = 3000;
 const OUTBOUND_PORT = 3001;

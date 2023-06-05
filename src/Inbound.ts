@@ -2,6 +2,7 @@ import {
   DwnMessage,
   DwnDescriptor } from './types.js';
 import HttpServer from './HttpServer.js';
+import http from 'http';
 
 export type HttpRoute = {
   path: string;
@@ -16,7 +17,7 @@ export type HttpRoute = {
 
 export interface IInboundDwnInterface {
   (descriptor: DwnDescriptor,
-    route: HttpRoute,
+    route: http.RequestOptions,
     middleware?: ((message: DwnMessage) => any)): void;
 }
 

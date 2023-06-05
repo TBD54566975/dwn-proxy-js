@@ -19,25 +19,23 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { App } from '../src/main';
+import { App, Message } from '../src/main';
+import fetch from 'some-http-tool';
 
 const app = new App();
 
 // simple inbound route
-const match = { protocol: 'tbdex', schema: 'offer' };
-const route = { path: '/some/api/offer', method: 'GET' };
-app.inbound.records.query(match, route);
+app.inbound.addRoute('tbdex', 'offer', '/some/api/offer');
 
 // inbound route with middleware
-app.inbound.records.write(
-  { protocol: 'tbdex', schema: 'rfq' },
-  { path: '/some/api/rfq', method: 'POST' },
-  msg => {
-    return {
-      hello : msg.data.hello,
-      world : msg.data.world
-    };
-  });
+app.inbound.addMiddleware(
+  'tbdex',
+  'rfq',
+  message => {
+    // do middleware things
+    fetch('/some/api/rfq', { something: message.data.thing });
+  }
+);
 
 // simple outbound route
 app.outbound.post('/some/api/quote');
@@ -45,15 +43,10 @@ app.outbound.post('/some/api/quote');
 //outbound route with middleware
 app.outbound.post('/some/api/status', (req, res) => {
   // do some middleware things
-  return {
-    descriptor: {
-      protocol : 'tbdex',
-      schema   : 'status'
-    },
-    data: {
-      something: 'else'
-    }
-  };
+  const did = req.somewhere.did;
+  Message.send('tbdex', 'status', did, { some: 'data' });
+  res.status = 200;
+  res.end();
 });
 
 const INBOUND_PORT = 3000;
@@ -65,9 +58,19 @@ app.listen(INBOUND_PORT, OUTBOUND_PORT);
 
 ![Inbound](./images/how-it-works.png)
 
-## DWN Process
+## App.inbound
 
 ...
+
+`App.inbound` is a place for you to define the inbound messages you support and where to route the requests to.
+
+## App.outbound
+
+...
+
+## DWN Process
+
+...??? protocol enforcement, data storage, auth, idk???
 
 ## Middleware
 

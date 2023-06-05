@@ -2,9 +2,20 @@
 
 export type NextFunction = () => void;
 
+export const DwnInterface = {
+  Records: 'Records'
+};
+
+export const DwnMethod = {
+  Write : 'Write',
+  Query : 'Query'
+};
+
 export type DwnDescriptor = {
-  schema: string;
-  protocol: string;
+  interface: string;
+  method: string;
+  protocol?: string;
+  schema?: string;
 }
 
 export type DwnMessage = {

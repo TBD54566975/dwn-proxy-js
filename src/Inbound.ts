@@ -1,50 +1,51 @@
+import { DwnMessage } from './types.js';
 import {
-  DwnMessage,
-  DwnDescriptor } from './types.js';
-import HttpServer from './HttpServer.js';
-import http from 'http';
+  IHttpServer,
+  IHttpHandler,
+  HttpServer } from './Http.js';
 
-export type HttpRoute = {
+export type Route = {
+  protocol: string;
+  schema: string;
   path: string;
-  method: string;
-  // headers: any;
-  // body: any;
-};
-
-// export interface IInboundMiddleware {
-//   (message: DwnMessage, next: NextFunction): void;
-// }
-
-export interface IInboundDwnInterface {
-  (descriptor: DwnDescriptor,
-    route: http.RequestOptions,
-    middleware?: ((message: DwnMessage) => any)): void;
 }
 
-export interface IRecords {
-  write: IInboundDwnInterface;
-  query: IInboundDwnInterface;
+export interface IMiddleware {
+  (message: DwnMessage): void;
 }
 
-// export interface IInboundRoute {
-//   match: (message: DwnMessage) => boolean;
-//   use: IInboundDwnMiddleware;
-// }
+export type Middleware = {
+  protocol: string;
+  schema: string;
+  middleware: IMiddleware;
+}
 
-export class Inbound extends HttpServer {
-  // routes: Array<IInboundRoute>;
-  // middlewares: Array<IInboundMiddleware>;
+export class Inbound implements IHttpServer {
+  server: HttpServer;
+  routes: Array<Route>;
+  middlewares: Array<Middleware>;
 
-  // use = (middleware: IInboundMiddleware) => {
-  //   this.middlewares.push(middleware);
-  // };
+  constructor() {
+    this.server = new HttpServer();
+  }
 
-  records: IRecords = {
-    write: (descriptor, route, middleware) => {
-      console.log(descriptor, route, middleware);
-    },
-    query: (descriptor, route, middleware) => {
-      console.log(descriptor, route, middleware);
-    }
+  addRoute = (protocol: string, schema: string, path: string) =>
+    this.routes.push({ protocol, schema, path });
+
+  addMiddleware = (protocol: string, schema: string, middleware: IMiddleware) =>
+    this.middlewares.push({ protocol, schema, middleware });
+
+  #handler: IHttpHandler = (req, res) => {
+    console.log(req, res);
+    /**
+     * - parse DWM from req
+     * - iterate handlers to find match
+     *    - search routes first? routes take precent?
+     * - if no match, then respond 404
+     * - if middleware, then call
+     * - make downstream http req
+     */
   };
+
+  listen = (port: number) => this.server.listen(port, this.#handler);
 }

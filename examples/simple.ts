@@ -1,32 +1,32 @@
-import { App, Message } from '../src/main';
-import fetch from 'some-http-tool';
+import { App } from '../src/main';
+// import fetch from 'some-http-tool';
 
 const app = new App();
 
 // simple inbound route
-app.inbound.addRoute('tbdex', 'offer', '/some/api/offer');
+app.inbound.protocol.route('tbdex', 'offer', '/some/api/offer');
 
-// inbound route with middleware
-app.inbound.addMiddleware(
-  'tbdex',
-  'rfq',
-  message => {
-    // do middleware things
-    fetch('/some/api/rfq', { something: message.data.thing });
-  }
-);
+// // inbound route with middleware
+// app.inbound.protocol.middleware(
+//   'tbdex',
+//   'rfq',
+//   message => {
+//     // do middleware things
+//     fetch('/some/api/rfq', { something: message.data.thing });
+//   }
+// );
 
-// simple outbound route
-app.outbound.post('/some/api/quote');
+// // simple outbound route
+// app.outbound.post('/some/api/quote');
 
-//outbound route with middleware
-app.outbound.post('/some/api/status', (req, res) => {
-  // do some middleware things
-  const did = req.somewhere.did;
-  Message.send('tbdex', 'status', did, { some: 'data' });
-  res.status = 200;
-  res.end();
-});
+// //outbound route with middleware
+// app.outbound.post('/some/api/status', (req, res) => {
+//   // do some middleware things
+//   const did = req.somewhere.did;
+//   Message.send('tbdex', 'status', did, { some: 'data' });
+//   res.status = 200;
+//   res.end();
+// });
 
 const INBOUND_PORT = 3000;
 const OUTBOUND_PORT = 3001;

@@ -25,10 +25,10 @@ import fetch from 'some-http-tool';
 const app = new App();
 
 // simple inbound route
-app.inbound.addRoute('tbdex', 'offer', '/some/api/offer');
+app.inbound.protocol.route('tbdex', 'offer', '/some/api/offer');
 
 // inbound route with middleware
-app.inbound.addMiddleware(
+app.inbound.protocol.middleware(
   'tbdex',
   'rfq',
   message => {

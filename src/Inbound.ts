@@ -22,7 +22,7 @@ export type ProtocolMiddleware = {
 
 export class Inbound implements IHttpServer {
   #server: HttpServer;
-  #protocols: Array<ProtocolRoute | ProtocolMiddleware>;
+  #protocols: Array<ProtocolRoute | ProtocolMiddleware> = [];
 
   constructor() {
     this.#server = new HttpServer();

@@ -40,6 +40,8 @@ export class Inbound {
     console.log(`Target: ${target}`);
     console.log(message);
 
+    // TODO: Message.validateJsonSchema
+
     const reply = await dwn.processMessage(target, message, req as any);
     console.log(reply);
     // RecordsRead messages return record data as a stream to for accommodate large amounts of data

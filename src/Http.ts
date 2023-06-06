@@ -1,14 +1,19 @@
+import { Dwn } from '@tbd54566975/dwn-sdk-js';
 import http from 'http';
 
 export interface IHttpHandler {
   (req: http.IncomingMessage, res: http.ServerResponse): void
 }
 
-export interface IHttpServer {
-  listen: (
-    port: number,
-    handler: IHttpHandler) => void;
+export interface IHttpDwnHandler {
+  (dwn: Dwn, req: http.IncomingMessage, res: http.ServerResponse): void
 }
+
+// export interface IHttpServer {
+//   listen: (
+//     port: number,
+//     handler: IHttpHandler) => void;
+// }
 
 export class HttpServer {
   listen = async (port: number, handler: IHttpHandler): Promise<void> => {

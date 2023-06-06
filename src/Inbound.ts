@@ -1,9 +1,7 @@
 import { DwnMessage } from './types.js';
-import {
-  IHttpServer,
-  IHttpHandler,
-  HttpServer } from './Http.js';
+import { IHttpDwnHandler,HttpServer } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
+import { Dwn } from '@tbd54566975/dwn-sdk-js';
 
 export type ProtocolRoute = {
   protocol: string;
@@ -21,7 +19,7 @@ export type ProtocolMiddleware = {
   middleware: IMiddleware;
 }
 
-export class Inbound implements IHttpServer {
+export class Inbound {
   #server: HttpServer;
   #protocols: Array<ProtocolRoute | ProtocolMiddleware> = [];
 
@@ -36,10 +34,19 @@ export class Inbound implements IHttpServer {
       this.#protocols.push({ protocol, schema, middleware })
   };
 
-  #handler: IHttpHandler = (req, res) => {
-    const message = parseDwm(req.headers['dwn-request'] as string);
+  #handler: IHttpDwnHandler = async (dwn, req, res) => {
+    const { target, message } = parseDwm(req.headers['dwn-request'] as string);
 
+    console.log(`Target: ${target}`);
     console.log(message);
+
+    const reply = await dwn.processMessage(target, message, req as any);
+    console.log(reply);
+    // RecordsRead messages return record data as a stream to for accommodate large amounts of data
+    if ('record' in reply) {
+      // TODO: Import `RecordsReadReply` from dwn-sdk-js once release with https://github.com/TBD54566975/dwn-sdk-js/pull/346 is available
+      console.log(reply.record);
+    }
 
     res.statusCode = 202;
     res.end();
@@ -53,5 +60,6 @@ export class Inbound implements IHttpServer {
      */
   };
 
-  listen = async (port: number) => await this.#server.listen(port, this.#handler);
+  listen = async (dwn: Dwn, port: number) =>
+    await this.#server.listen(port, (req, res) => this.#handler(dwn, req, res));
 }

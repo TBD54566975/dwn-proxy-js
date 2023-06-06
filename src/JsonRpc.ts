@@ -12,8 +12,7 @@ type JsonRpc = {
   params: MultiTenantDwm
 }
 
-export const parseDwm = (raw: string): DwnMessage => {
+export const parseDwm = (raw: string): MultiTenantDwm => {
   const jsonRpc = JSON.parse(raw) as JsonRpc;
-  const message = jsonRpc.params.message;
-  return message;
+  return jsonRpc.params;
 };

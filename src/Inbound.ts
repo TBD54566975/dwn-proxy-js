@@ -3,6 +3,7 @@ import {
   IHttpServer,
   IHttpHandler,
   HttpServer } from './Http.js';
+import { parseDwm } from './JsonRpc.js';
 
 export type ProtocolRoute = {
   protocol: string;
@@ -36,7 +37,12 @@ export class Inbound implements IHttpServer {
   };
 
   #handler: IHttpHandler = (req, res) => {
-    console.log(req, res);
+    const message = parseDwm(req.headers['dwn-request'] as string);
+
+    console.log(message);
+
+    res.statusCode = 202;
+    res.end();
     /**
      * - parse DWM from req
      * - iterate handlers to find match

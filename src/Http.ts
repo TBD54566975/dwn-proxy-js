@@ -11,11 +11,11 @@ export interface IHttpServer {
 }
 
 export class HttpServer {
-  listen(port: number, handler: IHttpHandler) {
+  listen = async (port: number, handler: IHttpHandler): Promise<void> => {
     const server = http.createServer(handler);
 
-    server.listen(port, 'localhost', () => {
-      console.log(`Server running at http://localhost:${port}/`);
-    });
-  }
+    return new Promise(resolve =>
+      server.listen(port, 'localhost', () => resolve(undefined))
+    );
+  };
 }

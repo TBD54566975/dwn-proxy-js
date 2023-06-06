@@ -47,5 +47,5 @@ export class Inbound implements IHttpServer {
      */
   };
 
-  listen = (port: number) => this.#server.listen(port, this.#handler);
+  listen = async (port: number) => await this.#server.listen(port, this.#handler);
 }

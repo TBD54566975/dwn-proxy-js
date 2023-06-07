@@ -10,31 +10,23 @@ export interface IMiddleware {
   (message: DwnMessage, data?: string | void): Promise<void>;
 }
 
-interface IHandlerOptions {
-  http?: {
-    path: string;
-    // TODO other things
-  };
-  middleware?: IMiddleware;
-}
-
 export interface IMatchFunc {
   (msg: DwnMessage): boolean;
 }
 
-interface IUseFunc {
-  (a: IMatchFunc, b: IHandlerOptions | string | IMiddleware, c?: IMiddleware): void;
+interface IHandlerFunc {
+  (match: IMatchFunc, middleware: IMiddleware): void;
 }
 
 interface IHandler {
   match: IMatchFunc;
-  options: IHandlerOptions;
+  middleware: IMiddleware;
 }
 
 interface IInbound {
   records: {
-    write: IUseFunc;
-    query: IUseFunc;
+    write: IHandlerFunc;
+    query: IHandlerFunc;
   };
   listen: (port: number) => Promise<any>;
 }
@@ -42,24 +34,11 @@ interface IInbound {
 export class Inbound implements IInbound {
   #handlers: Array<IHandler> = [];
 
-  #useHandler: IUseFunc = (a, b, c) => {
-    const match = a;
-    let options: IHandlerOptions;
-
-    if (typeof b === 'string')
-      options = { http: { path: b } };
-    else if (typeof b === 'function')
-      options = { middleware: b };
-    else
-      options = b;
-
-    if (c) options.middleware = c;
-
+  #useHandler: IHandlerFunc = (match, middleware) =>
     this.#handlers.push({
       match,
-      options
+      middleware
     });
-  };
 
   #http: IHttpFunc = async (req, res) => {
     try {
@@ -72,7 +51,7 @@ export class Inbound implements IInbound {
       if (!handler) {
         res.statusCode = 404;
       } else {
-        if (handler.options.middleware) handler.options.middleware(message, data);
+        if (handler.middleware) handler.middleware(message, data);
         // forward http
         res.statusCode = 202;
       }

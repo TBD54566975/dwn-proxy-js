@@ -4,8 +4,9 @@ import {
   createServer,
   readOctetStream } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
+import { Message } from '@tbd54566975/dwn-sdk-js';
 
-interface IMiddleware {
+export interface IMiddleware {
   (message: DwnMessage, data?: string | void): Promise<void>;
 }
 
@@ -22,7 +23,7 @@ export interface IMatchFunc {
 }
 
 interface IUseFunc {
-  (match: IMatchFunc, a: IHandlerOptions | string, middleware?: IMiddleware): void;
+  (a: IMatchFunc, b: IHandlerOptions | string | IMiddleware, c?: IMiddleware): void;
 }
 
 interface IHandler {
@@ -47,6 +48,8 @@ export class Inbound implements IInbound {
 
     if (typeof b === 'string')
       options = { http: { path: b } };
+    else if (typeof b === 'function')
+      options = { middleware: b };
     else
       options = b;
 
@@ -59,18 +62,23 @@ export class Inbound implements IInbound {
   };
 
   #http: IHttpFunc = async (req, res) => {
-    const message = parseDwm(req.headers['dwn-request'] as string);
-    // TODO dwn-sdk-js Message.validateJsonSchema
+    try {
+      const message = parseDwm(req.headers['dwn-request'] as string);
+      const data = await readOctetStream(req);
 
-    const data = await readOctetStream(req);
+      Message.validateJsonSchema(message);
 
-    const handler = this.#handlers.find(({ match }) => match(message));
-    if (!handler) {
-      res.statusCode = 404;
-    } else {
-      res.statusCode = 202;
-      if (handler.options.middleware) handler.options.middleware(message, data);
-      // forward http
+      const handler = this.#handlers.find(({ match }) => match(message));
+      if (!handler) {
+        res.statusCode = 404;
+      } else {
+        if (handler.options.middleware) handler.options.middleware(message, data);
+        // forward http
+        res.statusCode = 202;
+      }
+    } catch (err) {
+      console.error(err);
+      res.statusCode = 500;
     }
 
     res.end();

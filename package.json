@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@tbd54566975/dids": "^0.1.6",
+    "@tbd54566975/dwn-sdk-js": "^0.0.33",
     "@tbd54566975/web5-agent": "^0.1.5"
   }
 }

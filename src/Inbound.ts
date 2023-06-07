@@ -1,8 +1,8 @@
 import { DwnMessage } from './types.js';
 import {
-  IHttpServer,
   IHttpHandler,
-  HttpServer } from './Http.js';
+  createServer,
+  readOctetStream } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
 
 export type ProtocolRoute = {
@@ -21,13 +21,8 @@ export type ProtocolMiddleware = {
   middleware: IMiddleware;
 }
 
-export class Inbound implements IHttpServer {
-  #server: HttpServer;
+export class Inbound {
   #protocols: Array<ProtocolRoute | ProtocolMiddleware> = [];
-
-  constructor() {
-    this.#server = new HttpServer();
-  }
 
   protocol = {
     route: (protocol: string, schema: string, path: string) =>
@@ -36,10 +31,12 @@ export class Inbound implements IHttpServer {
       this.#protocols.push({ protocol, schema, middleware })
   };
 
-  #handler: IHttpHandler = (req, res) => {
+  #handler: IHttpHandler = async (req, res) => {
     const message = parseDwm(req.headers['dwn-request'] as string);
-
     console.log(message);
+
+    const data = await readOctetStream(req);
+    console.log(data);
 
     res.statusCode = 202;
     res.end();
@@ -53,5 +50,6 @@ export class Inbound implements IHttpServer {
      */
   };
 
-  listen = async (port: number) => await this.#server.listen(port, this.#handler);
+  // listen = async (port: number) => await this.#server.listen(port, this.#handler);
+  listen = async (port: number) => await createServer(port, this.#handler);
 }

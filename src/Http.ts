@@ -1,16 +1,10 @@
 import http from 'http';
 
-export interface IHttpHandler {
+export interface IHttpFunc {
   (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
 }
 
-export interface IHttpServer {
-  listen: (
-    port: number,
-    handler: IHttpHandler) => void;
-}
-
-export const createServer = async (port: number, handler: IHttpHandler): Promise<http.Server> => {
+export const createServer = async (port: number, handler: IHttpFunc): Promise<http.Server> => {
   const server = http.createServer(handler);
 
   await new Promise(resolve =>
@@ -20,7 +14,7 @@ export const createServer = async (port: number, handler: IHttpHandler): Promise
   return server;
 };
 
-export const readOctetStream = async (req: http.IncomingMessage): Promise<string> => {
+export const readOctetStream = async (req: http.IncomingMessage): Promise<string | void> => {
   let data = '';
 
   await new Promise((resolve, reject) => {

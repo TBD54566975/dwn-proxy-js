@@ -53,6 +53,7 @@ export class Inbound implements IInbound {
     });
 
   #http: IHttpFunc = async (req, res, dwnProcess) => {
+    console.log('new req received');
     // TODO build response
     res.statusCode = 200;
     const response = {
@@ -62,7 +63,8 @@ export class Inbound implements IInbound {
             code   : 200,
             detail : 'all is well'
           },
-          record: {}
+          entries : [],
+          record  : {}
         }
       }
     };

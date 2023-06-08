@@ -4,14 +4,23 @@ const proxyDid = 'did:ion:EiBnrXV07hLOb3PrYB7sD7YRK6L1jpRZ0bk_ORmm7ZfG2w:eyJkZWx
 
 const { web5 } = await Web5.connect();
 
-// this creates a record and stores it in the user's local DWeb Node
-const { record } = await web5.dwn.records.create({
-  data    : 'Hello World!',
+// // this creates a record and stores it in the user's local DWeb Node
+// const { record } = await web5.dwn.records.create({
+//   data    : 'Hello World!',
+//   message : {
+//     dataFormat: 'text/plain',
+//   },
+// });
+
+// const { status } = await record.send(proxyDid); // send the newly generated record to Bo
+// console.log(status);
+
+const result = await web5.dwn.records.query({
+  from    : proxyDid,
   message : {
-    dataFormat: 'text/plain',
-  },
+    filter: {
+      recordId: '123'
+    }
+  }
 });
-
-const { status } = await record.send(proxyDid); // send the newly generated record to Bo
-console.log(status);
-
+console.log(result);

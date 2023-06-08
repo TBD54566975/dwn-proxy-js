@@ -1,10 +1,10 @@
 import { DwnMessage } from './types.js';
 import {
-  IHttpFunc,
   createServer,
   readOctetStream } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
 import { Message } from '@tbd54566975/dwn-sdk-js';
+import http from 'http';
 
 export interface IMiddleware {
   (message: DwnMessage, data?: string | void): Promise<void>;
@@ -23,12 +23,24 @@ interface IHandler {
   middleware: IMiddleware;
 }
 
+interface IDwnProcessFunc {
+  (msg: DwnMessage): void;
+}
+
+interface IHttpFunc {
+  (req: http.IncomingMessage, res: http.ServerResponse, dwnProcess: IDwnProcessFunc): Promise<void>;
+}
+
+interface IListenFunc {
+  (port: number, dwnProcess: IDwnProcessFunc): Promise<any>;
+}
+
 interface IInbound {
   records: {
     write: IHandlerFunc;
     query: IHandlerFunc;
   };
-  listen: (port: number) => Promise<any>;
+  listen: IListenFunc;
 }
 
 export class Inbound implements IInbound {
@@ -40,7 +52,7 @@ export class Inbound implements IInbound {
       middleware
     });
 
-  #http: IHttpFunc = async (req, res) => {
+  #http: IHttpFunc = async (req, res, dwnProcess) => {
     try {
       const message = parseDwm(req.headers['dwn-request'] as string);
       const data = await readOctetStream(req);
@@ -52,6 +64,7 @@ export class Inbound implements IInbound {
         res.statusCode = 404;
       } else {
         handler.middleware(message, data);
+        dwnProcess(message);
         res.statusCode = 202;
       }
     } catch (err) {
@@ -67,5 +80,7 @@ export class Inbound implements IInbound {
     query : this.#useHandler
   };
 
-  listen = async (port: number) => await createServer(port, this.#http);
+  listen: IListenFunc = async (port, dwnProcess) => {
+    await createServer(port, (req, res) => this.#http(req, res, dwnProcess));
+  };
 }

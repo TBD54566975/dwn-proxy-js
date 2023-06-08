@@ -13,6 +13,18 @@ const result = await web5.dwn.records.query({
     }
   }
 });
-
 const offer = await result.records[0].data.json();
 console.log(offer);
+
+const write = await web5.dwn.records.write({
+  to      : proxyDid,
+  data    : 'Hello World!',
+  message : {
+    protocol     : 'https://tbdex.io/protocol',
+    protocolPath : 'Hello/World/OpenAI',
+    schema       : 'https://tbdex.io/schemas/RFQ',
+    dataFormat   : 'text/plain',
+  }
+});
+console.log(write);
+console.log(await write.record.data.text());

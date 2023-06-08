@@ -50,7 +50,7 @@ const messageReply = obj => ({
           descriptor: {
             dataFormat: 'application/json'
           },
-          encodedData: Encoder.stringToBase64Url(JSON.stringify(obj))
+          encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
         }
       ],
       record: {}
@@ -79,8 +79,7 @@ export class Inbound implements IInbound {
         res.statusCode = 404;
       } else {
         const dwnResponse = await handler.middleware(message, data);
-        if (dwnResponse)
-          res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
+        res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
         res.statusCode = 202;
       }
     } catch (err) {

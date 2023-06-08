@@ -24,7 +24,7 @@ const offer: IMiddleware = async msg => {
 };
 app.inbound.records.query(isOffer, offer);
 
-const isRfq: IMatchFunc = ({ filter: { protocol, schema } }) =>
+const isRfq: IMatchFunc = ({ protocol, schema }) =>
   protocol === PROTOCOL && schema === RFQ;
 const rfq: IMiddleware = async msg => {
   console.log(msg);
@@ -34,7 +34,7 @@ app.inbound.records.write(isRfq, rfq);
 
 // TODO Quote outbound
 
-const isOrder: IMatchFunc = ({ filter: { protocol, schema } }) =>
+const isOrder: IMatchFunc = ({ protocol, schema }) =>
   protocol === PROTOCOL && schema === ORDER;
 const order: IMiddleware = async msg => {
   console.log(msg);

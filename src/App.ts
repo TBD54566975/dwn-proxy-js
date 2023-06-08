@@ -33,6 +33,7 @@ export class App {
         }
       }]
     });
+    console.log(this.#didState);
 
     this.#dwn = await Dwn.create({
       eventLog     : new EventLogLevel({ location: 'data/EVENTLOG' }),

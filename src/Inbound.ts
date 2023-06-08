@@ -4,7 +4,7 @@ import {
   createServer,
   readOctetStream } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
-import { Message } from '@tbd54566975/dwn-sdk-js';
+import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
 
 export interface IMiddleware {
   (message: DwnMessage, data?: string | void): Promise<void>;
@@ -53,8 +53,9 @@ export class Inbound implements IInbound {
               descriptor: {
                 dataFormat: 'text/plain'
               },
-              // encodedData : Buffer.from('testing', 'utf-8'),
-              data: Buffer.from('testing', 'utf-8')
+              // encodedData: 'hello',
+              encodedData: Encoder.stringToBase64Url('hello world!')
+              // data: Buffer.from('testing', 'utf-8')
             }
           ],
           record: {}

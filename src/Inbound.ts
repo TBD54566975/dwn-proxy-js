@@ -52,7 +52,6 @@ export class Inbound implements IInbound {
         res.statusCode = 404;
       } else {
         handler.middleware(message, data);
-        // forward http
         res.statusCode = 202;
       }
     } catch (err) {

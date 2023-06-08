@@ -6,7 +6,7 @@ import { IMatchFunc, IMiddleware } from './Inbound.js';
 const app = new App();
 
 const isOffer: IMatchFunc = msg =>
-  msg.descriptor.protocol === 'tbdex' && msg.descriptor.schema === 'offer';
+  msg.descriptor.filter.protocol === 'http://tbdex' && msg.descriptor.filter.schema === 'http://offer';
 const getOffer: IMiddleware = async msg => {
   console.log(msg);
   /**
@@ -15,6 +15,7 @@ const getOffer: IMiddleware = async msg => {
    *    - else, make GET to PFI Core
    * - return offer message
    * */
+  return { some: 'offer', data: 123 };
 };
 app.inbound.records.query(isOffer, getOffer);
 

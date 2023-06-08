@@ -8,10 +8,11 @@ const result = await web5.dwn.records.query({
   from    : proxyDid,
   message : {
     filter: {
-      recordId: 'whatevs'
+      protocol : 'tbdex',
+      schema   : 'offer'
     }
   }
 });
 
-console.log(result);
-console.log(await result.records[0].data.text());
+const offer = await result.records[0].data.json();
+console.log(offer);

@@ -53,6 +53,7 @@ export class Inbound implements IInbound {
               descriptor: {
                 dataFormat: 'text/plain'
               },
+              // encodedData : Buffer.from('testing', 'utf-8'),
               data: Buffer.from('testing', 'utf-8')
             }
           ],
@@ -62,7 +63,7 @@ export class Inbound implements IInbound {
     };
     res.setHeader('dwn-response', JSON.stringify(response));
     res.statusCode = 202;
-    res.end(Buffer.from('hello world!!!', 'utf-8'));
+    res.end();
     return;
 
     try {

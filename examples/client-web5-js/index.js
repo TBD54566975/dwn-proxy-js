@@ -11,30 +11,7 @@ const { record } = await web5.dwn.records.create({
     dataFormat: 'text/plain',
   },
 });
-// console.log(record);
 
-const queryResult = await web5.dwn.records.query({
-  message: {
-    filter: {
-      recordId: record.id
-    }
-  }
-});
-// console.log(await queryResult.records[0].data.text());
+const { status } = await record.send(proxyDid); // send the newly generated record to Bo
+console.log(status);
 
-// console.log(await record.data.text()); // logs "Hello World!"
-// const { status: status1 } = await record.send(myDid); // send the record to the user's remote DWeb Nodes
-// console.log(status1);
-// const { status } = await record.send(proxyDid); // send the newly generated record to Bo
-// console.log(status);
-
-// const pfiResult = await web5.dwn.records.query({
-//   from    : proxyDid,
-//   message : {
-//     filter: {
-//       protocol : 'tbdex',
-//       schema   : 'offer'
-//     }
-//   }
-// });
-// console.log(pfiResult);

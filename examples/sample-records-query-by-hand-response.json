@@ -1,0 +1,16 @@
+{
+  "result": {
+    "reply": {
+      "status": {
+        "code": 200,
+        "detail": "all is well"
+      },
+      "entries": [
+        {
+          "descriptor": {},
+          "encodedData": ""
+        }
+      ]
+    }
+  }
+}

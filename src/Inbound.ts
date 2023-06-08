@@ -53,8 +53,26 @@ export class Inbound implements IInbound {
     });
 
   #http: IHttpFunc = async (req, res, dwnProcess) => {
+    // TODO build response
+    res.statusCode = 200;
+    const response = {
+      result: {
+        reply: {
+          status: {
+            code   : 200,
+            detail : 'all is well'
+          },
+          record: {}
+        }
+      }
+    };
+    res.setHeader('dwn-response', JSON.stringify(response));
+    res.end();
+
+    return;
     try {
       const message = parseDwm(req.headers['dwn-request'] as string);
+      console.log(JSON.stringify(message));
       const data = await readOctetStream(req);
 
       Message.validateJsonSchema(message);

@@ -5,8 +5,8 @@ import { IMatchFunc, IMiddleware } from './Inbound.js';
 
 const app = new App();
 
-const isOffer: IMatchFunc = msg =>
-  msg.descriptor.filter.protocol === 'http://tbdex' && msg.descriptor.filter.schema === 'http://offer';
+const isOffer: IMatchFunc = descriptor =>
+  descriptor.filter.protocol === 'http://tbdex' && descriptor.filter.schema === 'http://offer';
 const getOffer: IMiddleware = async msg => {
   console.log(msg);
   /**
@@ -19,8 +19,8 @@ const getOffer: IMiddleware = async msg => {
 };
 app.inbound.records.query(isOffer, getOffer);
 
-const isRfq: IMatchFunc = msg =>
-  msg.descriptor.protocol === 'tbdex' && msg.descriptor.schema === 'rfq';
+const isRfq: IMatchFunc = descriptor =>
+  descriptor.protocol === 'tbdex' && descriptor.schema === 'rfq';
 const postRfq: IMiddleware = async msg => {
   console.log(msg);
   // POST to the PFI backend
@@ -29,8 +29,8 @@ app.inbound.records.write(isRfq, postRfq);
 
 // TODO Quote outbound
 
-const isExecute: IMatchFunc = msg =>
-  msg.descriptor.protocol === 'tbdex' && msg.descriptor.schema === 'execute';
+const isExecute: IMatchFunc = descriptor =>
+  descriptor.protocol === 'tbdex' && descriptor.schema === 'execute';
 const postExecute: IMiddleware = async msg => {
   console.log(msg);
   // POST to the PFI backend

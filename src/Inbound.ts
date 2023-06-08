@@ -1,4 +1,4 @@
-import { DwnMessage } from './types.js';
+import { DwnMessage, DwnDescriptor } from './types.js';
 import {
   IHttpFunc,
   createServer,
@@ -11,16 +11,24 @@ export interface IMiddleware {
 }
 
 export interface IMatchFunc {
-  (msg: DwnMessage): boolean;
+  (descriptor: DwnDescriptor): boolean;
+}
+
+interface IHandler {
+  match: IMatchFunc;
+  middleware: IMiddleware;
 }
 
 interface IHandlerFunc {
   (match: IMatchFunc, middleware: IMiddleware): void;
 }
 
-interface IHandler {
-  match: IMatchFunc;
-  middleware: IMiddleware;
+interface IHandlers {
+  // [kw] different interface-methods could have different handler sigantures
+  //      currently, they're all IHandler, but we could tailor the DX
+  //      to have custom signatures for the different interface-methods
+  RecordsWrite: Array<IHandler>;
+  RecordsQuery: Array<IHandler>;
 }
 
 interface IInbound {
@@ -51,13 +59,10 @@ const messageReply = obj => ({
 });
 
 export class Inbound implements IInbound {
-  #handlers: Array<IHandler> = [];
-
-  #useHandler: IHandlerFunc = (match, middleware) =>
-    this.#handlers.push({
-      match,
-      middleware
-    });
+  #handlers: IHandlers = {
+    RecordsWrite : [],
+    RecordsQuery : []
+  };
 
   #http: IHttpFunc = async (req, res) => {
     try {
@@ -66,7 +71,10 @@ export class Inbound implements IInbound {
 
       Message.validateJsonSchema(message);
 
-      const handler = this.#handlers.find(({ match }) => match(message));
+      const handler =
+        this.#handlers[message.descriptor.interface + message.descriptor.method]
+          .find(({ match }) => match(message.descriptor));
+
       if (!handler) {
         res.statusCode = 404;
       } else {
@@ -84,8 +92,8 @@ export class Inbound implements IInbound {
   };
 
   records = {
-    write : this.#useHandler,
-    query : this.#useHandler
+    write : (match, middleware) => this.#handlers.RecordsWrite.push({ match, middleware }),
+    query : (match, middleware) => this.#handlers.RecordsQuery.push({ match, middleware })
   };
 
   listen = async (port: number) => await createServer(port, this.#http);

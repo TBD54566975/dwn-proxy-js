@@ -41,6 +41,30 @@ export class Inbound implements IInbound {
     });
 
   #http: IHttpFunc = async (req, res) => {
+    const response = {
+      result: {
+        reply: {
+          status: {
+            code   : 200,
+            detail : 'all is well'
+          },
+          entries: [
+            {
+              descriptor: {
+                dataFormat: 'text/plain'
+              },
+              encodedData: Buffer.from('testing', 'utf-8')
+            }
+          ],
+          record: {}
+        }
+      }
+    };
+    res.setHeader('dwn-response', JSON.stringify(response));
+    res.statusCode = 202;
+    res.end(Buffer.from('hello world!!!', 'utf-8'));
+    return;
+
     try {
       const message = parseDwm(req.headers['dwn-request'] as string);
       const data = await readOctetStream(req);
@@ -52,6 +76,20 @@ export class Inbound implements IInbound {
         res.statusCode = 404;
       } else {
         handler.middleware(message, data);
+
+        const response = {
+          result: {
+            reply: {
+              status: {
+                code   : 200,
+                detail : 'all is well'
+              },
+              entries : [],
+              record  : {}
+            }
+          }
+        };
+        res.setHeader('dwn-response', JSON.stringify(response));
         res.statusCode = 202;
       }
     } catch (err) {

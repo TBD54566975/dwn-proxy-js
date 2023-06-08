@@ -53,7 +53,7 @@ export class Inbound implements IInbound {
               descriptor: {
                 dataFormat: 'text/plain'
               },
-              encodedData: Buffer.from('testing', 'utf-8')
+              data: Buffer.from('testing', 'utf-8')
             }
           ],
           record: {}
@@ -76,20 +76,6 @@ export class Inbound implements IInbound {
         res.statusCode = 404;
       } else {
         handler.middleware(message, data);
-
-        const response = {
-          result: {
-            reply: {
-              status: {
-                code   : 200,
-                detail : 'all is well'
-              },
-              entries : [],
-              record  : {}
-            }
-          }
-        };
-        res.setHeader('dwn-response', JSON.stringify(response));
         res.statusCode = 202;
       }
     } catch (err) {

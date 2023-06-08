@@ -5,9 +5,14 @@ import { IMatchFunc, IMiddleware } from './Inbound.js';
 
 const app = new App();
 
-const isOffer: IMatchFunc = descriptor =>
-  descriptor.filter.protocol === 'http://tbdex' && descriptor.filter.schema === 'http://offer';
-const getOffer: IMiddleware = async msg => {
+const PROTOCOL = 'https://tbdex.io/protocol';
+const OFFER = 'https://tbdex.io/schemas/offering';
+const RFQ = 'https://tbdex.io/schemas/RFQ';
+const ORDER = 'https://tbdex.io/schemas/order';
+
+const isOffer: IMatchFunc = ({ filter: { protocol, schema } }) =>
+  protocol === PROTOCOL && schema === OFFER;
+const offer: IMiddleware = async msg => {
   console.log(msg);
   /**
    * - check cache
@@ -17,25 +22,25 @@ const getOffer: IMiddleware = async msg => {
    * */
   return { some: 'offer', data: 123 };
 };
-app.inbound.records.query(isOffer, getOffer);
+app.inbound.records.query(isOffer, offer);
 
-const isRfq: IMatchFunc = descriptor =>
-  descriptor.protocol === 'tbdex' && descriptor.schema === 'rfq';
-const postRfq: IMiddleware = async msg => {
+const isRfq: IMatchFunc = ({ filter: { protocol, schema } }) =>
+  protocol === PROTOCOL && schema === RFQ;
+const rfq: IMiddleware = async msg => {
   console.log(msg);
   // POST to the PFI backend
 };
-app.inbound.records.write(isRfq, postRfq);
+app.inbound.records.write(isRfq, rfq);
 
 // TODO Quote outbound
 
-const isExecute: IMatchFunc = descriptor =>
-  descriptor.protocol === 'tbdex' && descriptor.schema === 'execute';
-const postExecute: IMiddleware = async msg => {
+const isOrder: IMatchFunc = ({ filter: { protocol, schema } }) =>
+  protocol === PROTOCOL && schema === ORDER;
+const order: IMiddleware = async msg => {
   console.log(msg);
   // POST to the PFI backend
 };
-app.inbound.records.write(isExecute, postExecute);
+app.inbound.records.write(isOrder, order);
 
 const INBOUND_PORT = 3000;
 const OUTBOUND_PORT = 3001;

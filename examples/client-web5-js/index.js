@@ -8,8 +8,8 @@ const result = await web5.dwn.records.query({
   from    : proxyDid,
   message : {
     filter: {
-      protocol : 'tbdex',
-      schema   : 'offer'
+      protocol : 'https://tbdex.io/protocol',
+      schema   : 'https://tbdex.io/schemas/offering'
     }
   }
 });

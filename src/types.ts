@@ -16,6 +16,7 @@ export type DwnDescriptor = {
   method: string;
   protocol?: string;
   schema?: string;
+  filter: any;
 }
 
 export type DwnMessage = {

@@ -4,37 +4,15 @@ const proxyDid = 'did:ion:EiBnrXV07hLOb3PrYB7sD7YRK6L1jpRZ0bk_ORmm7ZfG2w:eyJkZWx
 
 const { web5 } = await Web5.connect();
 
-// this creates a record and stores it in the user's local DWeb Node
-const { record } = await web5.dwn.records.create({
-  data    : 'Hello World!',
+const result = await web5.dwn.records.query({
+  from    : proxyDid,
   message : {
-    dataFormat: 'text/plain',
-  },
-});
-// console.log(record);
-
-const queryResult = await web5.dwn.records.query({
-  message: {
     filter: {
-      recordId: record.id
+      protocol : 'tbdex',
+      schema   : 'offer'
     }
   }
 });
-// console.log(await queryResult.records[0].data.text());
 
-// console.log(await record.data.text()); // logs "Hello World!"
-// const { status: status1 } = await record.send(myDid); // send the record to the user's remote DWeb Nodes
-// console.log(status1);
-// const { status } = await record.send(proxyDid); // send the newly generated record to Bo
-// console.log(status);
-
-// const pfiResult = await web5.dwn.records.query({
-//   from    : proxyDid,
-//   message : {
-//     filter: {
-//       protocol : 'tbdex',
-//       schema   : 'offer'
-//     }
-//   }
-// });
-// console.log(pfiResult);
+const offer = await result.records[0].data.json();
+console.log(offer);

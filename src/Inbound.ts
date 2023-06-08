@@ -4,10 +4,10 @@ import {
   createServer,
   readOctetStream } from './Http.js';
 import { parseDwm } from './JsonRpc.js';
-import { Message } from '@tbd54566975/dwn-sdk-js';
+import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
 
 export interface IMiddleware {
-  (message: DwnMessage, data?: string | void): Promise<void>;
+  (message: DwnMessage, data?: string | void): Promise<any>;
 }
 
 export interface IMatchFunc {
@@ -31,6 +31,25 @@ interface IInbound {
   listen: (port: number) => Promise<any>;
 }
 
+const messageReply = obj => ({
+  result: {
+    reply: {
+      status: {
+        code: 200
+      },
+      entries: [
+        {
+          descriptor: {
+            dataFormat: 'application/json'
+          },
+          encodedData: Encoder.stringToBase64Url(JSON.stringify(obj))
+        }
+      ],
+      record: {}
+    }
+  }
+});
+
 export class Inbound implements IInbound {
   #handlers: Array<IHandler> = [];
 
@@ -51,7 +70,9 @@ export class Inbound implements IInbound {
       if (!handler) {
         res.statusCode = 404;
       } else {
-        handler.middleware(message, data);
+        const dwnResponse = await handler.middleware(message, data);
+        if (dwnResponse)
+          res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
         res.statusCode = 202;
       }
     } catch (err) {

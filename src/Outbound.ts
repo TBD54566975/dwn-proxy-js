@@ -94,9 +94,7 @@ export class Outbound {
     res.end();
   };
 
-  post: IRestful<any> = (path, middleware) => {
-    console.log(path, middleware);
-  };
+  post: IRestful<any> = (path, middleware) => this.#handlers.push({ method: 'POST', path, middleware });
 
   listen = async (port: number, signatureInput: SignatureInput) => {
     await createServer(port, this.#http);

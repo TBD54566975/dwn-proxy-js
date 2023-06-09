@@ -13,7 +13,7 @@ const ORDER = 'https://tbdex.io/schemas/order';
 const isOffer: IMatchFunc = ({ filter: { protocol, schema } }) =>
   protocol === PROTOCOL && schema === OFFER;
 const offer: IMiddleware = async msg => {
-  console.log(msg);
+  console.log('Offer message:', msg);
   /**
    * - check cache
    *    - if exists then return
@@ -27,7 +27,7 @@ app.inbound.records.query(isOffer, offer);
 const isRfq: IMatchFunc = ({ protocol, schema }) =>
   protocol === PROTOCOL && schema === RFQ;
 const rfq: IMiddleware = async msg => {
-  console.log(msg);
+  console.log('RFQ message:', msg);
   // POST to the PFI backend
 };
 app.inbound.records.write(isRfq, rfq);
@@ -37,7 +37,7 @@ app.inbound.records.write(isRfq, rfq);
 const isOrder: IMatchFunc = ({ protocol, schema }) =>
   protocol === PROTOCOL && schema === ORDER;
 const order: IMiddleware = async msg => {
-  console.log(msg);
+  console.log('Order message:', msg);
   // POST to the PFI backend
 };
 app.inbound.records.write(isOrder, order);

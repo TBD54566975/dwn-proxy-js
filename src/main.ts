@@ -40,7 +40,15 @@ app.inbound.records.write(isRfq, rfq);
 //#endregion
 
 //#region Quote
-// TODO Quote outbound
+app.outbound.post('/api/quote', async (req) => {
+  console.log(req);
+  return {
+    targetDid : '123',
+    data      : {
+      something: 123
+    }
+  };
+});
 //#endregion
 
 //#region Order

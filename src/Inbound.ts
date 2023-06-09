@@ -19,24 +19,12 @@ interface IHandler {
   middleware: IMiddleware<any>;
 }
 
-interface IHandlerFunc {
-  (match: IMatchFunc, middleware: IMiddleware<any>): void;
-}
-
 interface IHandlers {
   // [kw] different interface-methods could have different handler sigantures
   //      currently, they're all IHandler, but we could tailor the DX
   //      to have custom signatures for the different interface-methods
   RecordsWrite: Array<IHandler>;
   RecordsQuery: Array<IHandler>;
-}
-
-interface IInbound {
-  records: {
-    write: IHandlerFunc;
-    query: IHandlerFunc;
-  };
-  listen: (port: number) => Promise<any>;
 }
 
 const messageReply = (obj, code = 200) => ({
@@ -58,7 +46,7 @@ const messageReply = (obj, code = 200) => ({
   }
 });
 
-export class Inbound implements IInbound {
+export class Inbound {
   #handlers: IHandlers = {
     RecordsWrite : [],
     RecordsQuery : []
@@ -98,8 +86,10 @@ export class Inbound implements IInbound {
   };
 
   records = {
-    write : (match, middleware) => this.#handlers.RecordsWrite.push({ match, middleware }),
-    query : (match, middleware) => this.#handlers.RecordsQuery.push({ match, middleware })
+    write:
+      (match: IMatchFunc, middleware: IMiddleware<unknown>) => this.#handlers.RecordsWrite.push({ match, middleware }),
+    query:
+      (match: IMatchFunc, middleware: IMiddleware<unknown>) => this.#handlers.RecordsQuery.push({ match, middleware })
   };
 
   listen = async (port: number) => await createServer(port, this.#http);

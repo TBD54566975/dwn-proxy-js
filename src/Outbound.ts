@@ -1,37 +1,60 @@
 import http from 'http';
-import { DwnMessage } from './types.js';
+import url from 'url';
+import { IHttpFunc, createServer } from './Http.js';
+import {
+  resolveEndpoint,
+  createMessage,
+  sendMessage } from './dwn.js';
 
-// export interface IOutboundMiddleware {
-//   (req: http.IncomingMessage, res: http.OutgoingMessage, next: NextFunction): void;
-// }
-
-export interface IOutboundRestfulMiddleware {
-  (req: http.IncomingMessage, res: http.OutgoingMessage): DwnMessage;
+interface IMiddlewareDwnIntent<T> {
+  targetDid: string;
+  // assuming RecordsWrite only right now
+  data: T;
 }
 
-export interface IOutboundMethodMiddleware {
-  (path: string,
-    middleware?: ((req: http.IncomingMessage, res: http.OutgoingMessage) => DwnMessage)): void
+export interface IMiddleware<T> {
+  (req: http.IncomingMessage): Promise<IMiddlewareDwnIntent<T>>;
 }
 
-// export interface IOutboundRoute {
-//   match: (req: http.IncomingMessage) => boolean;
-//   use: IOutboundRestfulMiddleware;
-// }
+export interface IRestful<T> {
+  (path: string, middleware: IMiddleware<T>): void
+}
+
+interface IHandler {
+  method: string;
+  path: string;
+  middleware: IMiddleware<any>;
+}
 
 export class Outbound {
-  // routes: Array<IOutboundRoute>;
-  // middlewares: Array<IOutboundMiddleware>;
+  #handlers: Array<IHandler> = [];
 
-  // use = (middleware: IOutboundMiddleware) => {
-  //   this.middlewares.push(middleware);
-  // };
+  #http: IHttpFunc = async (req, res) => {
+    try {
+      const path = url.parse(req.url).pathname;
+      const handler = this.#handlers.find(x => x.method === req.method && x.path === path);
 
-  // get: IOutboundMethodMiddleware = (path, middleware) => {
-  //   console.log(path, middleware);
-  // };
+      if (!handler) {
+        res.statusCode = 404;
+      } else {
+        handler.middleware(req).then(async intent => {
+          const endpoint = await resolveEndpoint(intent.targetDid);
+          const message = await createMessage(intent);
+          await sendMessage(endpoint, message);
+        });
+        res.statusCode = 202;
+      }
+    } catch (err) {
+      console.error(err);
+      res.statusCode = 500;
+    }
 
-  post: IOutboundMethodMiddleware = (path, middleware) => {
+    res.end();
+  };
+
+  post: IRestful<any> = (path, middleware) => {
     console.log(path, middleware);
   };
+
+  listen = async (port: number) => await createServer(port, this.#http);
 }

@@ -26,5 +26,4 @@ const write = await web5.dwn.records.write({
     dataFormat   : 'text/plain',
   }
 });
-console.log(write);
 console.log(await write.record.data.text());

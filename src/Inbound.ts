@@ -39,11 +39,11 @@ interface IInbound {
   listen: (port: number) => Promise<any>;
 }
 
-const messageReply = obj => ({
+const messageReply = (obj, code = 200) => ({
   result: {
     reply: {
       status: {
-        code: 200
+        code
       },
       entries: [
         {
@@ -69,24 +69,33 @@ export class Inbound implements IInbound {
       const message = parseDwm(req.headers['dwn-request'] as string);
       const data = await readOctetStream(req);
 
-      Message.validateJsonSchema(message);
+      let isValidSchema = false;
+      try {
+        Message.validateJsonSchema(message);
+        isValidSchema = true;
+      } catch (err) {
+        res.statusCode = 400;
+        res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 400)));
+      }
 
-      const handler =
-        this.#handlers[message.descriptor.interface + message.descriptor.method]
-          .find(({ match }) => match(message.descriptor));
+      if (isValidSchema) {
+        const handler =
+          this.#handlers[message.descriptor.interface + message.descriptor.method]
+            .find(({ match }) => match(message.descriptor));
 
-      if (!handler) {
-        res.statusCode = 404;
-      } else {
-        const dwnResponse = await handler.middleware(message, data);
-        res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
-        res.statusCode = 202;
+        if (!handler) {
+          res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 404)));
+        } else {
+          const dwnResponse = await handler.middleware(message, data);
+          res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
+        }
       }
     } catch (err) {
       console.error(err);
-      res.statusCode = 500;
+      res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 500)));
     }
 
+    res.statusCode = 200;
     res.end();
   };
 

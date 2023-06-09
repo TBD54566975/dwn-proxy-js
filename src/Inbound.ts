@@ -6,8 +6,8 @@ import {
 import { parseDwm } from './JsonRpc.js';
 import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
 
-export interface IMiddleware {
-  (message: DwnMessage, data?: string | void): Promise<any>;
+export interface IMiddleware<T> {
+  (message: DwnMessage, data?: string | void): Promise<T>;
 }
 
 export interface IMatchFunc {
@@ -16,11 +16,11 @@ export interface IMatchFunc {
 
 interface IHandler {
   match: IMatchFunc;
-  middleware: IMiddleware;
+  middleware: IMiddleware<any>;
 }
 
 interface IHandlerFunc {
-  (match: IMatchFunc, middleware: IMiddleware): void;
+  (match: IMatchFunc, middleware: IMiddleware<any>): void;
 }
 
 interface IHandlers {

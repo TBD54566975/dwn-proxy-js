@@ -74,7 +74,6 @@ export class Inbound implements IInbound {
         Message.validateJsonSchema(message);
         isValidSchema = true;
       } catch (err) {
-        res.statusCode = 400;
         res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 400)));
       }
 
@@ -83,12 +82,11 @@ export class Inbound implements IInbound {
           this.#handlers[message.descriptor.interface + message.descriptor.method]
             .find(({ match }) => match(message.descriptor));
 
-        if (!handler) {
+        if (!handler)
           res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 404)));
-        } else {
-          const dwnResponse = await handler.middleware(message, data);
-          res.setHeader('dwn-response', JSON.stringify(messageReply(dwnResponse)));
-        }
+        else
+          res.setHeader('dwn-response',
+            JSON.stringify(messageReply(await handler.middleware(message, data))));
       }
     } catch (err) {
       console.error(err);

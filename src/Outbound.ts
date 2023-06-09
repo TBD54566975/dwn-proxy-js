@@ -1,10 +1,8 @@
 import http from 'http';
 import url from 'url';
 import { IHttpFunc, createServer } from './Http.js';
-import {
-  resolveEndpoint,
-  createMessage,
-  sendMessage } from './dwn.js';
+import { RecordsWrite, SignatureInput } from '@tbd54566975/dwn-sdk-js';
+import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids';
 
 interface IMiddlewareDwnIntent<T> {
   targetDid: string;
@@ -26,8 +24,52 @@ interface IHandler {
   middleware: IMiddleware<any>;
 }
 
+const resolveEndpoint = async (did: string): Promise<string> => {
+  // TODO use resolver cache
+  const doc = (await new DidIonApi().resolve(did)).didDocument;
+  if (!doc) return; // TODO
+  const service = doc.service.find(x => x.type === 'DecentralizedWebNode');
+  if (!service) return; // TODO
+  return (service.serviceEndpoint as DwnServiceEndpoint).nodes[0];
+};
+
+const createMessage = async (signature: SignatureInput, data: string): Promise<RecordsWrite> => {
+  return await RecordsWrite.create({
+    data                        : Buffer.from(data, 'utf-8'),
+    dataFormat                  : 'text/plain',
+    authorizationSignatureInput : signature
+  });
+};
+
+const sendMessage = async (endpoint: string, target: string, message: RecordsWrite, data?: any): Promise<void> => {
+  const rpc = {
+    'jsonrpc' : '2.0',
+    'id'      : '90a7309e-d5ad-4404-b609-7d050a1dff17',
+    'method'  : 'dwn.processMessage',
+    'params'  : {
+      target,
+      message
+    }
+  };
+
+  const fetchOpts = {
+    method  : 'POST',
+    headers : {
+      'dwn-request': JSON.stringify(rpc)
+    }
+  };
+  if (data) {
+    fetchOpts.headers['content-type'] = 'application/octet-stream';
+    fetchOpts['body'] = data;
+  }
+
+  const resp = await fetch(endpoint, fetchOpts);
+  console.log(resp.status);
+};
+
 export class Outbound {
   #handlers: Array<IHandler> = [];
+  #signatureInput: any;
 
   #http: IHttpFunc = async (req, res) => {
     try {
@@ -39,8 +81,8 @@ export class Outbound {
       } else {
         handler.middleware(req).then(async intent => {
           const endpoint = await resolveEndpoint(intent.targetDid);
-          const message = await createMessage(intent);
-          await sendMessage(endpoint, message);
+          const message = await createMessage(this.#signatureInput, JSON.stringify(intent));
+          await sendMessage(endpoint, intent.targetDid, message);
         });
         res.statusCode = 202;
       }
@@ -56,5 +98,8 @@ export class Outbound {
     console.log(path, middleware);
   };
 
-  listen = async (port: number) => await createServer(port, this.#http);
+  listen = async (port: number, signatureInput: SignatureInput) => {
+    await createServer(port, this.#http);
+    this.#signatureInput = signatureInput;
+  };
 }

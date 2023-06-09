@@ -24,10 +24,21 @@ export class App {
       }]
     });
 
+    const { keys } = this.#didState;
+    const [ key ] = keys;
+    const { privateKeyJwk } = key;
+    const kidFragment = privateKeyJwk.kid || key.id;
+    const kid = `${this.#didState.id}#${kidFragment}`;
+    const signatureInput = {
+      privateJwk      : privateKeyJwk,
+      protectedHeader : { alg: privateKeyJwk.crv, kid }
+    };
+
     await this.inbound.listen(inboundPort);
+    await this.outbound.listen(outboundPort, signatureInput);
 
     console.log(`Listening to inbound on ${inboundPort}`);
     console.log(`Listening to outbound on ${outboundPort}`);
-    console.log(`Created & receiving DID: ${this.#didState.id}`);
+    console.log(`Hosted DID: ${this.#didState.id}`);
   };
 }

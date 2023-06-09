@@ -1,15 +1,4 @@
-// TODO all of this is stubbed in
-
-export type NextFunction = () => void;
-
-export const DwnInterface = {
-  Records: 'Records'
-};
-
-export const DwnMethod = {
-  Write : 'Write',
-  Query : 'Query'
-};
+// TODO these don't belong here
 
 export type DwnDescriptor = {
   interface: string;

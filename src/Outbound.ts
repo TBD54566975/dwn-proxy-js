@@ -10,18 +10,18 @@ interface IMiddlewareDwnIntent<T> {
   data: T;
 }
 
-export interface IMiddleware<T> {
+export interface IOutboundMiddleware<T> {
   (req: http.IncomingMessage): Promise<IMiddlewareDwnIntent<T>>;
 }
 
 export interface IRestful<T> {
-  (path: string, middleware: IMiddleware<T>): void
+  (path: string, middleware: IOutboundMiddleware<T>): void
 }
 
 interface IHandler {
   method: string;
   path: string;
-  middleware: IMiddleware<any>;
+  middleware: IOutboundMiddleware<any>;
 }
 
 const resolveEndpoint = async (did: string): Promise<string> => {

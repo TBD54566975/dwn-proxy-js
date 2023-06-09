@@ -6,17 +6,17 @@ import {
 import { parseDwm } from './JsonRpc.js';
 import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
 
-export interface IMiddleware<T> {
+export interface IInboundMiddleware<T> {
   (message: DwnMessage, data?: string | void): Promise<T>;
 }
 
-export interface IMatchFunc {
+export interface IInboundMatchFunc {
   (descriptor: DwnDescriptor): boolean;
 }
 
 interface IHandler {
-  match: IMatchFunc;
-  middleware: IMiddleware<any>;
+  match: IInboundMatchFunc;
+  middleware: IInboundMiddleware<any>;
 }
 
 interface IHandlers {
@@ -87,9 +87,9 @@ export class Inbound {
 
   records = {
     write:
-      (match: IMatchFunc, middleware: IMiddleware<unknown>) => this.#handlers.RecordsWrite.push({ match, middleware }),
+      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsWrite.push({ match, middleware }),
     query:
-      (match: IMatchFunc, middleware: IMiddleware<unknown>) => this.#handlers.RecordsQuery.push({ match, middleware })
+      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsQuery.push({ match, middleware })
   };
 
   listen = async (port: number) => await createServer(port, this.#http);

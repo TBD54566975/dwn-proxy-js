@@ -6,7 +6,7 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
-* [Design Principles](#design-principles)
+* [Design](#design)
 * [Usage](#usage)
 * [`App.inbound.records.query(handler)`](#appinboundrecordsqueryhandler)
 * [`App.inbound.records.write(handler)`](#appinboundrecordswritehandler)
@@ -18,7 +18,7 @@ Making DWN integrations with traditional backend services easy.
 
 ![Intro diagram](./images/intro.png)
 
-# Design Principles
+# Design
 
 At it's lightest, this package can act as a network router for DWN Message's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
@@ -58,12 +58,13 @@ app.inbound.records.write(
       return response.status === 200;
     }
 
-    return false;
+    return false; // dwn.processMessage() will not be called
   }
 );
 
 // your outbound API
-app.outbound.post('/api/quote', async req => { // example POST api handler
+app.outbound.post('/api/quote', async req => {
+  // you could do your own custom auth here
   const { targetDid, quote } = await req.body.json();
 
   // returning this will send the DWN Message to the targetDid

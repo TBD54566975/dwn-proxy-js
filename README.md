@@ -65,7 +65,7 @@ app.listen(INBOUND_PORT, OUTBOUND_PORT);
 
 ## `App.inbound.records.query(handler)`
 
-// TODO diagram sequence of events
+![Records Query](images/records-query.png)
 
 Optional method for handling inbound `RecordsQuery` messages. Since this package implements a fully-featured DWN, querying for records is already supported in accordance with the `dwn-sdk-js` reference implementation. The intent of this interface is to enable custom middleware and/or overriding the `dwn-sdk-js` records query.
 

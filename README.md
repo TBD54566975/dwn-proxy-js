@@ -34,6 +34,8 @@ Handlers for inbound DWN Messages must be defined in order for the underlying DW
 
 ![Inbound](images/inbound.png)
 
+![Outbound](images/outbound.png)
+
 # Usage
 
 

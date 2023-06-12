@@ -14,8 +14,6 @@ Making DWN integrations with traditional backend services easy.
 * [TODO](#todo)
 * [Project Resources](#project-resources)
 
-// TODO use "handler" and not "middleware"
-
 ![Intro diagram](./images/intro.png)
 
 # Design
@@ -149,6 +147,7 @@ app.outbound.post('/api/something-else', async req => {
 ```
 
 `path` - HTTP path 
+
 `handler` - `(req) => Promise<void | Record>`
   - If return type is `void` then no DWN processing occurs neither is a subsequent DWN Message sent on
   - Else if the return type is `Record` then

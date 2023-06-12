@@ -61,13 +61,19 @@ const OUTBOUND_PORT = 3001;
 app.listen(INBOUND_PORT, OUTBOUND_PORT);
 ```
 
-*Note:* inbound and outbound executions are distinct network interfaces for reasons of security; often times enterprise environments will secure remote interfaces via network firewalls. TODO: check w/ InfoSec, does this actually make a difference since they're both executing within the same proces?
+*Note:* inbound and outbound executions are distinct network interfaces for reasons of security; often times enterprise environments will secure remote interfaces via network firewalls. TODO: check w/ InfoSec, does this actually make a difference since they're both executing within the same process?
+
+## `App.inbound`
+
+This package offers a fully-featured DWN, using the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js), over JSON-RPC. Which means, in the case wherein no handler is defined for the given `{Interface}{Method}` (such as `RecordsQuery`), then it is no different than the [`dwn-server`](https://github.com/TBD54566975/dwn-server).
+
+Else, in the case you have a handler defined for the given `{Interface}{Method}`, then your handler will *always be called **first***. At which point, you may choose to invoke whatever backend service you would like. Your handler will then use the `return` to either immediately respond to the requestor, or use the standard DWN message processing.
+
+![Inbound](images/inbound.png)
 
 ## `App.inbound.records.query(handler)`
 
-![Records Query](images/records-query.png)
-
-Optional method for handling inbound `RecordsQuery` messages. Since this package implements a fully-featured DWN, querying for records is already supported in accordance with the `dwn-sdk-js` reference implementation. The intent of this interface is to enable custom middleware and/or overriding the `dwn-sdk-js` records query.
+Method for handling inbound `RecordsQuery` messages.
 
 ```typescript
 app.inbound.records.query(
@@ -89,9 +95,7 @@ app.inbound.records.query(
 
 ## `App.inbound.records.write(handler)`
 
-// TODO diagram how that `dwn.processMessage()` isn't called until *after* the handler returns
-
-Method for handling inbound `RecordsWrite` messages. The underlying DWN does not process the given message until *after* the execution of the given `handler`, and in the event that the return is `false` then the underlying DWN will not process the message, which is to say store the message, and instead will immediately response to the requestor with an error code.
+Method for handling inbound `RecordsWrite` messages.
 
 ```typescript
 app.inbound.records.write(
@@ -109,12 +113,10 @@ app.inbound.records.write(
 ```
 
 `handler` - `(message: DwnMessage) => Promise<boolean>`
-  - If the return is `true` then the given message will be processed (& stored)
-  - Else if the return is `false` then the given message will **not** be processed (& stored) and will immediately respond to the requestor with an error code
+  - If the return is `true` then `dwn.processMessage()` will be called
+  - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
 
 ## `App.outbound.post(path, handler)`
-
-// TODO diagram
 
 Method for defining an outbound HTTP POST API call.
 

@@ -6,30 +6,38 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
+* [Design Principles](#design-principles)
 * [Usage](#usage)
-* [`App.inbound`](#appinbound)
 * [`App.inbound.records.query(handler)`](#appinboundrecordsqueryhandler)
 * [`App.inbound.records.write(handler)`](#appinboundrecordswritehandler)
 * [`App.outbound.post(path, handler)`](#appoutboundpostpath-handler)
 * [TODO](#todo)
 * [Project Resources](#project-resources)
 
+// TODO use "handler" and not "middleware"
 
 ![Intro diagram](./images/intro.png)
 
-# Usage
+# Design Principles
 
 At it's lightest, this package can act as a network router for DWN Message's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
 Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent [interface](https://github.com/TBD54566975/web5-js/tree/main/packages/web5-agent)). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
 
----
+Handlers will **always** be called *prior-to* the underlying DWN Processing (that is, `dwn.processMessage()`), and based on the `return` of the handler, then DWN Processing may be avoided altogether.
 
-*Note:* we should reconsider the project composition in relation to `dwn-server`.
-
-The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
+Handlers for inbound DWN Messages must be defined in order for the underlying DWN to accept and process messages. If a handler for the given `{Interface}{Method}` is not defined (ex: `RecordsWrite`) then all messages for that given `{Interface}{Method}` will be rejected.
 
 ---
+
+*Note:* we should reconsider the project composition in relation to `dwn-server`. The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
+
+---
+
+![Inbound](images/inbound.png)
+
+# Usage
+
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js
@@ -71,14 +79,6 @@ app.listen(INBOUND_PORT, OUTBOUND_PORT);
 ```
 
 *Note:* inbound and outbound executions are distinct network interfaces for reasons of security; often times enterprise environments will secure remote interfaces via network firewalls. TODO: check w/ InfoSec, does this actually make a difference since they're both executing within the same process?
-
-# `App.inbound`
-
-This package offers a fully-featured DWN, using the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js), over JSON-RPC. Which means, in the case wherein no handler is defined for the given `{Interface}{Method}` (such as `RecordsQuery`), then it is no different than the [`dwn-server`](https://github.com/TBD54566975/dwn-server).
-
-Else, in the case you have a handler defined for the given `{Interface}{Method}`, then your handler will *always be called **first***. At which point, you may choose to invoke whatever backend service you would like. Your handler will then use the `return` to either immediately respond to the requestor, or use the standard DWN message processing.
-
-![Inbound](images/inbound.png)
 
 # `App.inbound.records.query(handler)`
 
@@ -157,6 +157,7 @@ app.outbound.post('/api/something-else', async req => {
 # TODO
 
 - Consider custom auth for the outbound API
+- Determine if inbound vs outbound network ports is actually necessary?
 
 # Project Resources
 

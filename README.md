@@ -1,4 +1,4 @@
-# DWN Proxy
+# DWN Proxy <!-- omit in toc -->
 
 Making DWN integrations with traditional backend services easy.
 
@@ -6,19 +6,28 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
+* [Usage](#usage)
+* [`App.inbound`](#appinbound)
+* [`App.inbound.records.query(handler)`](#appinboundrecordsqueryhandler)
+* [`App.inbound.records.write(handler)`](#appinboundrecordswritehandler)
+* [`App.outbound.post(path, handler)`](#appoutboundpostpath-handler)
+* [TODO](#todo)
+* [Project Resources](#project-resources)
+
+
 ![Intro diagram](./images/intro.png)
 
 # Usage
 
 At it's lightest, this package can act as a network router for DWN Message's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
-Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent interface). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
+Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent [interface](https://github.com/TBD54566975/web5-js/tree/main/packages/web5-agent)). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
 
 ---
 
 *Note:* we should reconsider the project composition in relation to `dwn-server`.
 
-The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
+The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
 
 ---
 
@@ -63,7 +72,7 @@ app.listen(INBOUND_PORT, OUTBOUND_PORT);
 
 *Note:* inbound and outbound executions are distinct network interfaces for reasons of security; often times enterprise environments will secure remote interfaces via network firewalls. TODO: check w/ InfoSec, does this actually make a difference since they're both executing within the same process?
 
-## `App.inbound`
+# `App.inbound`
 
 This package offers a fully-featured DWN, using the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js), over JSON-RPC. Which means, in the case wherein no handler is defined for the given `{Interface}{Method}` (such as `RecordsQuery`), then it is no different than the [`dwn-server`](https://github.com/TBD54566975/dwn-server).
 
@@ -71,7 +80,7 @@ Else, in the case you have a handler defined for the given `{Interface}{Method}`
 
 ![Inbound](images/inbound.png)
 
-## `App.inbound.records.query(handler)`
+# `App.inbound.records.query(handler)`
 
 Method for handling inbound `RecordsQuery` messages.
 
@@ -93,7 +102,7 @@ app.inbound.records.query(
   - If the return type is `void` then the underlying DWN will read from its own record store
   - Else if the return type is `Record` then the given record will be immediately returned to the requestor
 
-## `App.inbound.records.write(handler)`
+# `App.inbound.records.write(handler)`
 
 Method for handling inbound `RecordsWrite` messages.
 
@@ -116,7 +125,7 @@ app.inbound.records.write(
   - If the return is `true` then `dwn.processMessage()` will be called
   - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
 
-## `App.outbound.post(path, handler)`
+# `App.outbound.post(path, handler)`
 
 Method for defining an outbound HTTP POST API call.
 
@@ -145,7 +154,11 @@ app.outbound.post('/api/something-else', async req => {
     - The record is written to ones own DWN
     - The record is sent onwards (as a message) to the `targetDid`
 
-## Project Resources
+# TODO
+
+- Consider custom auth for the outbound API
+
+# Project Resources
 
 | Resource                                   | Description                                                                   |
 | ------------------------------------------ | ----------------------------------------------------------------------------- |

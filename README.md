@@ -12,33 +12,13 @@ Making DWN integrations with traditional backend services easy.
 
 At it's lightest, this package can act as a network router for DWN Message's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
-Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent interface). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the intent of .
+Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent interface). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
 
 ---
 
-TODO rather than being comprehensive, try to articulate how `dwn-proxy-js` should fit in relation to the existing `dwn-server`
+*Note:* we should reconsider the project composition in relation to `dwn-server`.
 
-*Note:* we should consider a different composition of projects.
-
-(Consider `dwn-sdk-js` and `web5-js` remain as-is)
-
-First, a set of npm packages, wherein the target user base is developers. The idea here being to build developer-tools for composability & extensibility.
-
-- `dwn-json-rpc-js` uses `dwn-sdk-js` to implement a fully-featured DWN intended for server environments
-  - *Note:* we could take it a step further and split out `json-rpc-js`
-- `dwn-proxy-js` uses `dwn-json-rpc-js` to serve the DWN, but then offers programmatic interfaces to handle messages, with the intention of serving traditional backend (for example, also offering an outbound interface)
-
-Second, a set of executables (command line applications), wherein the target user base is still developers, but the developer experience (DX) is not programmatic. Instead, the DX being developers directly execute the given artifact, and possibily configure.
-
-- `dwn-server` a thin wrapper around `dwn-json-rpc-js` which stands as the reference implementation for a DWN interfaced over a network boundary
-- `dwn-proxy` a thin wrapper around `dwn-proxy-js` which offers a default configuration and custom markup config syntax for defining the inbound and outbound handlers
-
-Third, a set of applications, wherein the target user base is non-developers. The idea here being similar to the way in which [Bitcoin Core](https://bitcoin.org/en/download) is offered to users. That is, users download a DMG/ISO/etc. and run the application on their machine, optionally with a very basic GUI.
-
-- `dwn-server-gui` uses `dwn-server` and implements a basic GUI, enabling the user to administrate and view their DWN
-- `dwn-proxy-gui` uses `dwn-proxy` and implements a basic GUI, enabling the user to configure & monitor their proxy
-
-*Note:* we should consider multi-tenant vs single-tenant product/service design and how that would fit into the above.
+The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
 
 ---
 

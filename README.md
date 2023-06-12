@@ -42,7 +42,7 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { App, Message } from '@tbd54566975/dwn-proxy-js';
+import { App } from '@tbd54566975/dwn-proxy-js';
 
 const app = new App();
 

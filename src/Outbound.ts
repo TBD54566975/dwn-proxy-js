@@ -44,7 +44,7 @@ const createMessage = async (signature: SignatureInput, data: string): Promise<R
 const sendMessage = async (endpoint: string, target: string, message: RecordsWrite, data?: any): Promise<void> => {
   const rpc = {
     'jsonrpc' : '2.0',
-    'id'      : '90a7309e-d5ad-4404-b609-7d050a1dff17',
+    'id'      : '90a7309e-d5ad-4404-b609-7d050a1dff17', // TODO
     'method'  : 'dwn.processMessage',
     'params'  : {
       target,

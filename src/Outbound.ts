@@ -28,7 +28,8 @@ export class Outbound implements IOutbound {
     this.#signatureInput = sig;
   }
 
-  generateKeys = async endpoint => {
+  // TODO this is incorrect design, but it works for now
+  generateKeys: IGenerateKeys = async endpoint => {
     if (!this.#signatureInput) {
       const didState = await new DidIonApi().create({
         services: [{

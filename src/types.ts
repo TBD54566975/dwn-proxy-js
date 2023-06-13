@@ -4,10 +4,13 @@ export interface IRecordsQueryHandler {
   (message: DwnMessage): Promise<void | DwnRecord>;
 }
 export interface IRecordsWriteHandler {
-  (message: DwnMessage): Promise<boolean>;
+  (message: DwnMessage, data: any): Promise<boolean>;
 }
 export interface IRestfulHandler {
   (req: http.IncomingMessage): Promise<void | DwnRecord>;
+}
+export interface IHttpHandle {
+  (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
 }
 
 // TODO these don't belong here

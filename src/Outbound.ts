@@ -1,29 +1,93 @@
-import http from 'http';
-import url from 'url';
-import { IHttpFunc, createServer } from './Http.js';
-import { RecordsWrite, SignatureInput } from '@tbd54566975/dwn-sdk-js';
 import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids';
-
-interface IMiddlewareDwnIntent<T> {
-  targetDid: string;
-  // assuming RecordsWrite only right now
-  data: T;
-}
-
-export interface IOutboundMiddleware<T> {
-  (req: http.IncomingMessage): Promise<IMiddlewareDwnIntent<T>>;
-}
-
-export interface IRestful<T> {
-  (path: string, middleware: IOutboundMiddleware<T>): void
-}
+import { IRestfulHandler, IHttpHandle } from './types.js';
+import url from 'url';
+import { RecordsWrite, SignatureInput } from '@tbd54566975/dwn-sdk-js';
 
 interface IHandler {
   method: string;
   path: string;
-  middleware: IOutboundMiddleware<any>;
+  handler: IRestfulHandler
+}
+interface IRestful {
+  (path: string, handler: IRestfulHandler): void;
+}
+interface IGenerateKeys { // TODO this is incorrect design
+  (endpoint: string): Promise<void>;
+}
+export interface IOutbound {
+  generateKeys: IGenerateKeys;
+  post: IRestful;
+  handle: IHttpHandle;
 }
 
+export class Outbound implements IOutbound {
+  #signatureInput: SignatureInput;
+  #handlers: Array<IHandler> = [];
+
+  constructor(sig?: SignatureInput) {
+    this.#signatureInput = sig;
+  }
+
+  generateKeys = async endpoint => {
+    if (!this.#signatureInput) {
+      const didState = await new DidIonApi().create({
+        services: [{
+          id              : 'dwn',
+          type            : 'DecentralizedWebNode',
+          serviceEndpoint : {
+            nodes: [ endpoint ]
+          }
+        }]
+      });
+
+      console.log(`Created DID and hosting: ${didState.id}`);
+
+      const { keys } = didState;
+      const [ key ] = keys;
+      const { privateKeyJwk } = key;
+      const kidFragment = privateKeyJwk.kid || key.id;
+      const kid = `${didState.id}#${kidFragment}`;
+      this.#signatureInput = {
+        privateJwk      : privateKeyJwk,
+        protectedHeader : { alg: privateKeyJwk.crv, kid }
+      };
+    }
+  };
+
+  post: IRestful = (path, handler) => this.#handlers.push({
+    method: 'POST',
+    path,
+    handler
+  });
+
+  handle: IHttpHandle = async (req, res) => {
+    try {
+      const path = url.parse(req.url as string).pathname;
+      const handler = this.#handlers.find(x => x.method === req.method && x.path === path);
+
+      if (!handler) {
+        res.statusCode = 404;
+      } else {
+        const message = await handler.handler(req);
+        if (message) {
+          // TODO send the message onwards
+          const targetDid = 'TODO';
+          const endpoint = await resolveEndpoint(targetDid);
+          const recordsWriteMessage = await createMessage(this.#signatureInput, JSON.stringify(message));
+          await sendMessage(endpoint, targetDid, recordsWriteMessage);
+        }
+        res.statusCode = 202;
+      }
+    } catch (err) {
+      console.error(err);
+      res.statusCode = 500;
+    }
+
+    res.end();
+  };
+}
+
+// TODO don't love this
 const resolveEndpoint = async (did: string): Promise<string> => {
   // TODO use resolver cache
   const doc = (await new DidIonApi().resolve(did)).didDocument;
@@ -66,38 +130,3 @@ const sendMessage = async (endpoint: string, target: string, message: RecordsWri
   const resp = await fetch(endpoint, fetchOpts);
   console.log(resp.status);
 };
-
-export class Outbound {
-  #handlers: Array<IHandler> = [];
-  #signatureInput: any;
-
-  #http: IHttpFunc = async (req, res) => {
-    try {
-      const path = url.parse(req.url).pathname;
-      const handler = this.#handlers.find(x => x.method === req.method && x.path === path);
-
-      if (!handler) {
-        res.statusCode = 404;
-      } else {
-        handler.middleware(req).then(async intent => {
-          const endpoint = await resolveEndpoint(intent.targetDid);
-          const message = await createMessage(this.#signatureInput, JSON.stringify(intent));
-          await sendMessage(endpoint, intent.targetDid, message);
-        });
-        res.statusCode = 202;
-      }
-    } catch (err) {
-      console.error(err);
-      res.statusCode = 500;
-    }
-
-    res.end();
-  };
-
-  post: IRestful<any> = (path, middleware) => this.#handlers.push({ method: 'POST', path, middleware });
-
-  listen = async (port: number, signatureInput: SignatureInput) => {
-    await createServer(port, this.#http);
-    this.#signatureInput = signatureInput;
-  };
-}

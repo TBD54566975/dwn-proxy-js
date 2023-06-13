@@ -1,30 +1,12 @@
-import { DwnMessage, DwnDescriptor } from './types.js';
-import {
-  IHttpFunc,
-  createServer,
-  readOctetStream } from './Http.js';
-import { parseDwm } from './JsonRpc.js';
 import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
+import { parseDwm } from './JsonRpc.js';
+import { IRecordsQueryHandler, IRecordsWriteHandler, IHttpHandle } from './types.js';
+import { readOctetStream } from './Http.js';
 
-export interface IInboundMiddleware<T> {
-  (message: DwnMessage, data?: string | void): Promise<T>;
-}
-
-export interface IInboundMatchFunc {
-  (descriptor: DwnDescriptor): boolean;
-}
-
-interface IHandler {
-  match: IInboundMatchFunc;
-  middleware: IInboundMiddleware<any>;
-}
-
-interface IHandlers {
-  // [kw] different interface-methods could have different handler sigantures
-  //      currently, they're all IHandler, but we could tailor the DX
-  //      to have custom signatures for the different interface-methods
-  RecordsWrite: Array<IHandler>;
-  RecordsQuery: Array<IHandler>;
+export interface IInbound {
+  recordsQuery: IRecordsQueryHandler;
+  recordsWrite: IRecordsWriteHandler;
+  handle: IHttpHandle;
 }
 
 const messageReply = (obj, code = 200) => ({
@@ -46,16 +28,13 @@ const messageReply = (obj, code = 200) => ({
   }
 });
 
-export class Inbound {
-  #handlers: IHandlers = {
-    RecordsWrite : [],
-    RecordsQuery : []
-  };
+export class Inbound implements IInbound {
+  recordsQuery: IRecordsQueryHandler;
+  recordsWrite: IRecordsWriteHandler;
 
-  #http: IHttpFunc = async (req, res) => {
+  handle: IHttpHandle = async (req, res) => {
     try {
       const message = parseDwm(req.headers['dwn-request'] as string);
-      const data = await readOctetStream(req);
 
       let isValidSchema = false;
       try {
@@ -66,31 +45,29 @@ export class Inbound {
       }
 
       if (isValidSchema) {
-        const handler =
-          this.#handlers[message.descriptor.interface + message.descriptor.method]
-            .find(({ match }) => match(message.descriptor));
-
-        if (!handler)
+        const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
+        if (interfaceMethod === 'RecordsQuery') {
+          const record = await this.recordsQuery(message);
+          if (record) {
+            res.setHeader('dwn-response', JSON.stringify(messageReply(record, 400)));
+          } else {
+            console.log('TODO dwn.processMessage() and send response');
+          }
+        } else if (interfaceMethod === 'RecordsWrite') {
+          const data = await readOctetStream(req);
+          const isWritten = await this.recordsWrite(message, data);
+          if (isWritten) {
+            console.log('TODO dwn.processMessage() and send response');
+          } else {
+            // TODO what should I set the status to?
+            res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 500)));
+          }
+        } else {
           res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 404)));
-        else
-          res.setHeader('dwn-response',
-            JSON.stringify(messageReply(await handler.middleware(message, data))));
+        }
       }
     } catch (err) {
-      console.error(err);
-      res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 500)));
+      undefined;
     }
-
-    res.statusCode = 200;
-    res.end();
   };
-
-  records = {
-    write:
-      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsWrite.push({ match, middleware }),
-    query:
-      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsQuery.push({ match, middleware })
-  };
-
-  listen = async (port: number) => await createServer(port, this.#http);
 }

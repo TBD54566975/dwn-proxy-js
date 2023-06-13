@@ -26,6 +26,7 @@ export type DwnMessage = {
   descriptor: DwnDescriptor;
   data: any;
 }
-export type DwnRecord = {
-  something: string;
+export type DwnRecord = { // TODO this is obviously wrong
+  targetDid: string;
+  record: any;
 }

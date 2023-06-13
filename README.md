@@ -8,8 +8,8 @@ Making DWN integrations with traditional backend services easy.
 
 * [Design](#design)
 * [Usage](#usage)
-  * [`App.records.query(handler)`](#apprecordsqueryhandler)
-  * [`App.records.write(handler)`](#apprecordswritehandler)
+  * [`App.dwn.records.query(handler)`](#appdwnrecordsqueryhandler)
+  * [`App.dwn.records.write(handler)`](#appdwnrecordswritehandler)
   * [`App.post(path, handler)`](#apppostpath-handler)
 * [Project Resources](#project-resources)
 
@@ -42,7 +42,7 @@ import { App } from '@tbd54566975/dwn-proxy-js';
 const app = new App();
 
 // your inbound handler for RecordsWrite's
-app.records.write(
+app.dwn.records.write(
   async message => {
     const { descriptor: { protocol, schema }} = message;
 
@@ -71,12 +71,12 @@ const PORT = 3000;
 app.listen(PORT);
 ```
 
-## `App.records.query(handler)`
+## `App.dwn.records.query(handler)`
 
 Method for handling inbound `RecordsQuery` DWN Messages.
 
 ```typescript
-app.records.query(
+app.dwn.records.query(
   async message => { // handler function
     // space for custom middleware
     await myCustomMiddleware(message);
@@ -93,12 +93,12 @@ app.records.query(
   - If the return type is `void` then the underlying DWN will read from its own record store
   - Else if the return type is `Record` then the given record will be immediately returned to the requestor
 
-## `App.records.write(handler)`
+## `App.dwn.records.write(handler)`
 
 Method for handling inbound `RecordsWrite` DWN Messages.
 
 ```typescript
-app.records.write(
+app.dwn.records.write(
   async message => {
     const { descriptor: { protocol, schema }} = message;
 

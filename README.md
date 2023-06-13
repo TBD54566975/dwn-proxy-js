@@ -8,9 +8,9 @@ Making DWN integrations with traditional backend services easy.
 
 * [Design](#design)
 * [Usage](#usage)
-* [`App.records.query(handler)`](#apprecordsqueryhandler)
-* [`App.records.write(handler)`](#apprecordswritehandler)
-* [`App.post(path, handler)`](#apppostpath-handler)
+  * [`App.records.query(handler)`](#apprecordsqueryhandler)
+  * [`App.records.write(handler)`](#apprecordswritehandler)
+  * [`App.post(path, handler)`](#apppostpath-handler)
 * [Project Resources](#project-resources)
 
 ![Intro diagram](./images/intro.png)
@@ -77,7 +77,7 @@ const PORT = 3000;
 app.listen(PORT);
 ```
 
-# `App.records.query(handler)`
+## `App.records.query(handler)`
 
 Method for handling inbound `RecordsQuery` DWN Messages.
 
@@ -99,7 +99,7 @@ app.records.query(
   - If the return type is `void` then the underlying DWN will read from its own record store
   - Else if the return type is `Record` then the given record will be immediately returned to the requestor
 
-# `App.records.write(handler)`
+## `App.records.write(handler)`
 
 Method for handling inbound `RecordsWrite` DWN Messages.
 
@@ -122,7 +122,7 @@ app.records.write(
   - If the return is `true` then `dwn.processMessage()` will be called
   - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
 
-# `App.post(path, handler)`
+## `App.post(path, handler)`
 
 Method for defining an outbound HTTP POST API call.
 

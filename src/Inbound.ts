@@ -1,5 +1,5 @@
 import { IRecordsQueryHandler, IRecordsWriteHandler, IHttpHandle } from './types.js';
-import { parse, respond } from './DWN.js';
+import { DwnHttp } from './DwnHttp.js';
 
 export interface IInbound {
   recordsQuery: IRecordsQueryHandler;
@@ -7,22 +7,20 @@ export interface IInbound {
   handle: IHttpHandle;
 }
 
-
-
 export class Inbound implements IInbound {
   recordsQuery: IRecordsQueryHandler;
   recordsWrite: IRecordsWriteHandler;
 
   handle: IHttpHandle = async (req, res) => {
     try {
-      const { isValid, message, data } = await parse(req);
+      const { isValid, message, data } = await DwnHttp.parse(req);
 
       if (isValid) {
         const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
         if (interfaceMethod === 'RecordsQuery') {
           const record = await this.recordsQuery(message);
           if (record) {
-            respond(res, record);
+            DwnHttp.reply(res, record);
           } else {
             console.log('TODO dwn.processMessage() and send response');
           }
@@ -32,14 +30,15 @@ export class Inbound implements IInbound {
             console.log('TODO dwn.processMessage() and send response');
           } else {
             // TODO what should I set the status to?
-            respond(res, undefined, 500);
+            DwnHttp.reply(res, undefined, 500);
           }
         } else {
-          respond(res, undefined, 404);
+          DwnHttp.reply(res, undefined, 404);
         }
       }
     } catch (err) {
-      undefined;
+      // TODO
+      console.error(err);
     }
   };
 }

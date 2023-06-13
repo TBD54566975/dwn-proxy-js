@@ -8,6 +8,9 @@ interface IRecords {
   query: (handler: IRecordsQueryHandler) => void;
   write: (handler: IRecordsWriteHandler) => void;
 }
+interface IDwn {
+  records: IRecords;
+}
 interface IRestful {
   (path: string, handler: IRestfulHandler): void;
 }
@@ -15,7 +18,7 @@ interface IListen {
   (port: number): Promise<void>;
 }
 export interface IApp {
-  records: IRecords;
+  dwn: IDwn;
   post: IRestful;
   listen: IListen;
 }
@@ -29,9 +32,11 @@ export class App implements IApp {
     this.#outbound = new Outbound(sig);
   }
 
-  records: IRecords = {
-    query : handler => this.#inbound.recordsQuery = handler,
-    write : handler => this.#inbound.recordsWrite = handler
+  dwn: IDwn = {
+    records: {
+      query : handler => this.#inbound.recordsQuery = handler,
+      write : handler => this.#inbound.recordsWrite = handler
+    }
   };
 
   post: IRestful = (path, handler) => this.#outbound.post(path, handler);

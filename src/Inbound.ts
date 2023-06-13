@@ -1,96 +1,44 @@
-import { DwnMessage, DwnDescriptor } from './types.js';
-import {
-  IHttpFunc,
-  createServer,
-  readOctetStream } from './Http.js';
-import { parseDwm } from './JsonRpc.js';
-import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
+import { IRecordsQueryHandler, IRecordsWriteHandler, IHttpHandle } from './types.js';
+import DwnHttp from './DwnHttp.js';
 
-export interface IInboundMiddleware<T> {
-  (message: DwnMessage, data?: string | void): Promise<T>;
+export interface IInbound {
+  recordsQuery: IRecordsQueryHandler;
+  recordsWrite: IRecordsWriteHandler;
+  handle: IHttpHandle;
 }
 
-export interface IInboundMatchFunc {
-  (descriptor: DwnDescriptor): boolean;
-}
+export class Inbound implements IInbound {
+  recordsQuery: IRecordsQueryHandler;
+  recordsWrite: IRecordsWriteHandler;
 
-interface IHandler {
-  match: IInboundMatchFunc;
-  middleware: IInboundMiddleware<any>;
-}
-
-interface IHandlers {
-  // [kw] different interface-methods could have different handler sigantures
-  //      currently, they're all IHandler, but we could tailor the DX
-  //      to have custom signatures for the different interface-methods
-  RecordsWrite: Array<IHandler>;
-  RecordsQuery: Array<IHandler>;
-}
-
-const messageReply = (obj, code = 200) => ({
-  result: {
-    reply: {
-      status: {
-        code
-      },
-      entries: [
-        {
-          descriptor: {
-            dataFormat: 'application/json'
-          },
-          encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
-        }
-      ],
-      record: {}
-    }
-  }
-});
-
-export class Inbound {
-  #handlers: IHandlers = {
-    RecordsWrite : [],
-    RecordsQuery : []
-  };
-
-  #http: IHttpFunc = async (req, res) => {
+  handle: IHttpHandle = async (req, res) => {
     try {
-      const message = parseDwm(req.headers['dwn-request'] as string);
-      const data = await readOctetStream(req);
+      const { isValid, message, data } = await DwnHttp.parse(req);
 
-      let isValidSchema = false;
-      try {
-        Message.validateJsonSchema(message);
-        isValidSchema = true;
-      } catch (err) {
-        res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 400)));
-      }
-
-      if (isValidSchema) {
-        const handler =
-          this.#handlers[message.descriptor.interface + message.descriptor.method]
-            .find(({ match }) => match(message.descriptor));
-
-        if (!handler)
-          res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 404)));
-        else
-          res.setHeader('dwn-response',
-            JSON.stringify(messageReply(await handler.middleware(message, data))));
+      if (isValid) {
+        const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
+        if (interfaceMethod === 'RecordsQuery') {
+          const record = await this.recordsQuery(message);
+          if (record) {
+            DwnHttp.reply(res, record);
+          } else {
+            console.log('TODO dwn.processMessage() and send response');
+          }
+        } else if (interfaceMethod === 'RecordsWrite') {
+          const isWritten = await this.recordsWrite(message, data);
+          if (isWritten) {
+            console.log('TODO dwn.processMessage() and send response');
+          } else {
+            // TODO what should I set the status to?
+            DwnHttp.reply(res, undefined, 500);
+          }
+        } else {
+          DwnHttp.reply(res, undefined, 404);
+        }
       }
     } catch (err) {
+      // TODO
       console.error(err);
-      res.setHeader('dwn-response', JSON.stringify(messageReply(undefined, 500)));
     }
-
-    res.statusCode = 200;
-    res.end();
   };
-
-  records = {
-    write:
-      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsWrite.push({ match, middleware }),
-    query:
-      (match: IInboundMatchFunc, middleware: IInboundMiddleware<unknown>) => this.#handlers.RecordsQuery.push({ match, middleware })
-  };
-
-  listen = async (port: number) => await createServer(port, this.#http);
 }

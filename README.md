@@ -25,12 +25,6 @@ Handlers will **always** be called *prior-to* the underlying DWN Processing (tha
 
 Handlers for inbound DWN Messages must be defined in order for the underlying DWN to accept and process messages. If a handler for the given `{Interface}{Method}` is not defined (ex: `RecordsWrite`) then all messages for that given `{Interface}{Method}` will be rejected.
 
----
-
-*Note:* we should reconsider the project composition in relation to `dwn-server`. The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-featured DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
-
----
-
 ![Inbound](images/inbound.png)
 
 ![Outbound](images/outbound.png)

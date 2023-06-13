@@ -8,10 +8,9 @@ Making DWN integrations with traditional backend services easy.
 
 * [Design](#design)
 * [Usage](#usage)
-* [`App.inbound.records.query(handler)`](#appinboundrecordsqueryhandler)
-* [`App.inbound.records.write(handler)`](#appinboundrecordswritehandler)
-* [`App.outbound.post(path, handler)`](#appoutboundpostpath-handler)
-* [TODO](#todo)
+* [`App.records.query(handler)`](#apprecordsqueryhandler)
+* [`App.records.write(handler)`](#apprecordswritehandler)
+* [`App.post(path, handler)`](#apppostpath-handler)
 * [Project Resources](#project-resources)
 
 ![Intro diagram](./images/intro.png)
@@ -49,7 +48,7 @@ import { App } from '@tbd54566975/dwn-proxy-js';
 const app = new App();
 
 // your inbound handler for RecordsWrite's
-app.inbound.records.write(
+app.records.write(
   async message => {
     const { descriptor: { protocol, schema }} = message;
 
@@ -63,7 +62,7 @@ app.inbound.records.write(
 );
 
 // your outbound API
-app.outbound.post('/api/quote', async req => {
+app.post('/api/quote', async req => {
   // you could do your own custom auth here
   const { targetDid, quote } = await req.body.json();
 
@@ -74,19 +73,16 @@ app.outbound.post('/api/quote', async req => {
   };
 });
 
-const INBOUND_PORT = 3000;
-const OUTBOUND_PORT = 3001;
-app.listen(INBOUND_PORT, OUTBOUND_PORT);
+const PORT = 3000;
+app.listen(PORT);
 ```
 
-*Note:* inbound and outbound executions are distinct network interfaces for reasons of security; often times enterprise environments will secure remote interfaces via network firewalls. TODO: check w/ InfoSec, does this actually make a difference since they're both executing within the same process?
+# `App.records.query(handler)`
 
-# `App.inbound.records.query(handler)`
-
-Method for handling inbound `RecordsQuery` messages.
+Method for handling inbound `RecordsQuery` DWN Messages.
 
 ```typescript
-app.inbound.records.query(
+app.records.query(
   async message => { // handler function
     // space for custom middleware
     await myCustomMiddleware(message);
@@ -103,12 +99,12 @@ app.inbound.records.query(
   - If the return type is `void` then the underlying DWN will read from its own record store
   - Else if the return type is `Record` then the given record will be immediately returned to the requestor
 
-# `App.inbound.records.write(handler)`
+# `App.records.write(handler)`
 
-Method for handling inbound `RecordsWrite` messages.
+Method for handling inbound `RecordsWrite` DWN Messages.
 
 ```typescript
-app.inbound.records.write(
+app.records.write(
   async message => {
     const { descriptor: { protocol, schema }} = message;
 
@@ -126,12 +122,12 @@ app.inbound.records.write(
   - If the return is `true` then `dwn.processMessage()` will be called
   - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
 
-# `App.outbound.post(path, handler)`
+# `App.post(path, handler)`
 
 Method for defining an outbound HTTP POST API call.
 
 ```typescript
-app.outbound.post('/api/something', async req => {
+app.post('/api/something', async req => {
   const { targetDid, something } = await req.body.json();
 
   // returning this will send the DWN Message to the targetDid
@@ -141,7 +137,7 @@ app.outbound.post('/api/something', async req => {
   };
 });
 
-app.outbound.post('/api/something-else', async req => {
+app.post('/api/something-else', async req => {
   const somethingElse = await req.body.json();
   await someCustomMiddleware(somethingElse);
   // void return means no DWN Message is sent on
@@ -155,11 +151,6 @@ app.outbound.post('/api/something-else', async req => {
   - Else if the return type is `Record` then
     - The record is written to ones own DWN
     - The record is sent onwards (as a message) to the `targetDid`
-
-# TODO
-
-- Consider custom auth for the outbound API
-- Determine if inbound vs outbound network ports is actually necessary?
 
 # Project Resources
 

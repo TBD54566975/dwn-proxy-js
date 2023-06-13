@@ -12,7 +12,7 @@ interface JsonRpc {
   params: MultiTenantDwm
 }
 
-export class DwnJsonRpc {
+export default class DwnJsonRpc {
   static parse = (raw: string): DwnMessage => {
     const jsonRpc = JSON.parse(raw) as JsonRpc;
     const message = jsonRpc.params.message;

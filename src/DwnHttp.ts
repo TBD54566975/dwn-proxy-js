@@ -1,7 +1,7 @@
 import http from 'http';
 import { DwnMessage } from './types.js';
-import { DwnJsonRpc } from './DwnJsonRpc.js';
-import { readOctetStream } from './Http.js';
+import DwnJsonRpc from './DwnJsonRpc.js';
+import Http from './Http.js';
 import { Encoder, Message } from '@tbd54566975/dwn-sdk-js';
 
 interface IParse {
@@ -17,10 +17,10 @@ interface IReply {
   (res: http.ServerResponse, record?: any, code?: number): void;
 }
 
-export class DwnHttp {
+export default class DwnHttp {
   static parse: IParse = async req => {
     const message = DwnJsonRpc.parse(req.headers['dwn-request'] as string);
-    const data = await readOctetStream(req);
+    const data = await Http.readOctetStream(req);
 
     let isValid = false;
     try {

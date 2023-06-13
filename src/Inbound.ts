@@ -1,5 +1,5 @@
 import { IRecordsQueryHandler, IRecordsWriteHandler, IHttpHandle } from './types.js';
-import { DwnHttp } from './DwnHttp.js';
+import DwnHttp from './DwnHttp.js';
 
 export interface IInbound {
   recordsQuery: IRecordsQueryHandler;

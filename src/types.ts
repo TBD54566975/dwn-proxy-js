@@ -1,5 +1,6 @@
 import http from 'http';
 
+// TODO this whole file is bleh
 export interface IRecordsQueryHandler {
   (message: DwnMessage): Promise<void | DwnRecord>;
 }

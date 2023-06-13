@@ -1,29 +1,66 @@
 import { DidIonApi } from '@tbd54566975/dids';
-import { Inbound } from './Inbound.js';
-import { Outbound } from './Outbound.js';
 import { SignatureInput } from '@tbd54566975/dwn-sdk-js';
+import { IRecordsQueryHandler, IRecordsWriteHandler, IRestfulHandler } from './types.js';
+import { createServer } from './Http.js';
+import http from 'http';
 
-export class App {
-  inbound: Inbound;
-  outbound: Outbound;
+interface ISetKeys {
+  (sig: SignatureInput): void;
+}
+interface IListen {
+  (port: number): Promise<void>;
+}
+interface IRecords {
+  query: (handler: IRecordsQueryHandler) => void;
+  write: (handler: IRecordsWriteHandler) => void;
+}
+interface IRestful {
+  (path: string, handler: IRestfulHandler): void;
+}
+interface IApp {
+  keys: ISetKeys;
+  records: IRecords;
+  post: IRestful;
+  listen: IListen;
+}
 
+export class App implements IApp {
   #signatureInput: SignatureInput;
+  #records: {
+    query: IRecordsQueryHandler;
+    write: IRecordsWriteHandler;
+  };
+  #restful: Array<{
+    method: string;
+    path: string;
+    handler: IRestfulHandler;
+  }> = [];
 
-  constructor () {
-    this.inbound = new Inbound();
-    this.outbound = new Outbound();
-  }
+  #httpHandler = async (req: http.IncomingMessage, res: http.OutgoingMessage) => {
+    console.log(req, res);
+  };
 
-  signature = (sig: SignatureInput) => this.#signatureInput = sig;
+  keys: ISetKeys = sig => this.#signatureInput = sig;
 
-  listen = async (inboundPort: number, outboundPort: number) => {
+  records: IRecords = {
+    query : handler => this.#records.query = handler,
+    write : handler => this.#records.write = handler
+  };
+
+  post: IRestful = (path, handler) => this.#restful.push({
+    method: 'POST',
+    path,
+    handler
+  });
+
+  listen: IListen = async port => {
     if (!this.#signatureInput) {
       const didState = await new DidIonApi().create({
         services: [{
           id              : 'dwn',
           type            : 'DecentralizedWebNode',
           serviceEndpoint : {
-            nodes: [ `http://localhost:${inboundPort}` ]
+            nodes: [ `http://localhost:${port}` ]
           }
         }]
       });
@@ -41,10 +78,8 @@ export class App {
       };
     }
 
-    await this.inbound.listen(inboundPort);
-    await this.outbound.listen(outboundPort, this.#signatureInput);
+    await createServer(port, this.#httpHandler);
 
-    console.log(`Listening to inbound on ${inboundPort}`);
-    console.log(`Listening to outbound on ${outboundPort}`);
+    console.log(`Listening on port ${port}`);
   };
 }

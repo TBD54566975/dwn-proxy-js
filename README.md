@@ -27,7 +27,7 @@ Handlers for inbound DWN Messages must be defined in order for the underlying DW
 
 ---
 
-*Note:* we should reconsider the project composition in relation to `dwn-server`. The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-features DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
+*Note:* we should reconsider the project composition in relation to `dwn-server`. The two projects are distinct developer products, but they have significant overlap which can be isolated to a shared package. `dwn-json-rpc-js` could be a package which implements a fully-featured DWN, using `dwn-sdk-js`, interfaced via JSON-RPC, which offers optional programmatic callbacks both prior-to and post DWN Message processing (that is, `dwn.processMessage()`).
 
 ---
 

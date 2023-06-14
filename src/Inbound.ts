@@ -1,26 +1,27 @@
-import { IRecordsQueryHandler, IRecordsWriteHandler, IHttpHandle } from './types.js';
-import DwnHttp from './DwnHttp.js';
+import { IRecordsQueryHandler, IRecordsWriteHandler, DwnRecord } from './types.js';
+import { DwnMessage, DwnMessageValidator } from './DwnMessage.js';
 
+interface IHandle {
+  (message: DwnMessage, data: string | void): Promise<DwnRecord | void>;
+}
 export interface IInbound {
   recordsQuery: IRecordsQueryHandler;
   recordsWrite: IRecordsWriteHandler;
-  handle: IHttpHandle;
+  handle: IHandle;
 }
 
 export class Inbound implements IInbound {
   recordsQuery: IRecordsQueryHandler;
   recordsWrite: IRecordsWriteHandler;
 
-  handle: IHttpHandle = async (req, res) => {
+  handle: IHandle = async (message, data) => {
     try {
-      const { isValid, message, data } = await DwnHttp.parse(req);
-
-      if (isValid) {
+      if (DwnMessageValidator.validate(message)) {
         const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
         if (interfaceMethod === 'RecordsQuery') {
           const record = await this.recordsQuery(message);
           if (record) {
-            DwnHttp.reply(res, record);
+            return record;
           } else {
             console.log('TODO dwn.processMessage() and send response');
           }
@@ -29,11 +30,10 @@ export class Inbound implements IInbound {
           if (isWritten) {
             console.log('TODO dwn.processMessage() and send response');
           } else {
-            // TODO what should I set the status to?
-            DwnHttp.reply(res, undefined, 500);
+            return;
           }
         } else {
-          DwnHttp.reply(res, undefined, 404);
+          return;
         }
       }
     } catch (err) {

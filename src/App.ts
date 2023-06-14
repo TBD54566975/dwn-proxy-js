@@ -4,6 +4,7 @@ import Http from './Http.js';
 import { IInbound, Inbound } from './Inbound.js';
 import { IOutbound, Outbound } from './Outbound.js';
 import { DidIonApi } from '@tbd54566975/dids';
+import DwnHttp from './DwnHttp.js';
 
 interface IRecords {
   query: (handler: IRecordsQueryHandler) => void;
@@ -74,9 +75,13 @@ export class App implements IApp {
     this.#outbound = new Outbound(this.#signatureInput);
 
     await Http.createServer(port, async (req, res) => {
-      const isInbound = !!req.headers['dwn-request'];
-      if (isInbound) this.#inbound.handle(req, res);
-      else this.#outbound.handle(req, res);
+      const dwnRequest = await DwnHttp.parse(req);
+      if (dwnRequest) {
+        const record = await this.#inbound.handle(dwnRequest.message, dwnRequest.data);
+        DwnHttp.reply(res, record);
+      } else {
+        this.#outbound.handle(req, res);
+      }
     });
     console.log(`Listening on port ${port}`);
   };

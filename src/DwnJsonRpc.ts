@@ -1,4 +1,4 @@
-import { DwnMessage } from './types.js';
+import { DwnMessage } from './DwnMessage.js';
 
 interface MultiTenantDwm {
   target: string;

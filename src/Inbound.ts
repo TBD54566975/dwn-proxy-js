@@ -1,8 +1,9 @@
-import { IRecordsQueryHandler, IRecordsWriteHandler, DwnRecord } from './types.js';
+import { IRecordsQueryHandler, IRecordsWriteHandler } from './types.js';
 import { DwnMessage, DwnMessageValidator } from './DwnMessage.js';
+import { MessageReply } from '@tbd54566975/dwn-sdk-js';
 
 interface IHandle {
-  (message: DwnMessage, data: string | void): Promise<DwnRecord | void>;
+  (message: DwnMessage, data: string | void): Promise<MessageReply | void>;
 }
 export interface IInbound {
   recordsQuery: IRecordsQueryHandler;
@@ -19,9 +20,9 @@ export class Inbound implements IInbound {
       if (DwnMessageValidator.validate(message)) {
         const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
         if (interfaceMethod === 'RecordsQuery') {
-          const record = await this.recordsQuery(message);
-          if (record) {
-            return record;
+          const reply = await this.recordsQuery(message);
+          if (reply) {
+            return reply;
           } else {
             console.log('TODO dwn.processMessage() and send response');
           }

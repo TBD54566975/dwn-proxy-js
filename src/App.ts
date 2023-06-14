@@ -31,9 +31,9 @@ export class App implements IApp {
   #outbound: IOutbound;
 
   constructor(signatureInput?: SignatureInput) {
-    // this.#inbound = new Inbound();
-    // this.#outbound = new Outbound(signatureInput);
     this.#signatureInput = signatureInput;
+    this.#inbound = new Inbound();
+    this.#outbound = new Outbound(this.#signatureInput);
   }
 
   dwn: IDwn = {
@@ -69,10 +69,9 @@ export class App implements IApp {
         privateJwk      : privateKeyJwk,
         protectedHeader : { alg: privateKeyJwk.crv, kid }
       };
-    }
 
-    this.#inbound = new Inbound();
-    this.#outbound = new Outbound(this.#signatureInput);
+      this.#outbound.setKeys(this.#signatureInput);
+    }
 
     await Http.createServer(port, async (req, res) => {
       const dwnRequest = await DwnHttp.parse(req);

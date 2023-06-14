@@ -8,22 +8,28 @@ interface IHandler {
   path: string;
   handler: IRestfulHandler
 }
+interface ISetKeys {
+  (signatureInput: SignatureInput): void;
+}
 interface IRestful {
   (path: string, handler: IRestfulHandler): void;
 }
 export interface IOutbound {
+  setKeys: ISetKeys;
   post: IRestful;
   handle: IHttpHandle;
 }
 
 export class Outbound implements IOutbound {
-  #signatureInput: SignatureInput;
   #handlers: Array<IHandler> = [];
   #dwnClient: DwnClient;
 
   constructor(signatureInput: SignatureInput) {
-    this.#dwnClient = new DwnClient(signatureInput);
+    if (signatureInput)
+      this.#dwnClient = new DwnClient(signatureInput);
   }
+
+  setKeys: ISetKeys = signatureInput => this.#dwnClient = new DwnClient(signatureInput);
 
   post: IRestful = (path, handler) => this.#handlers.push({
     method: 'POST',

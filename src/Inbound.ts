@@ -19,22 +19,25 @@ export class Inbound implements IInbound {
     try {
       if (DwnMessageValidator.validate(message)) {
         const interfaceMethod = `${message.descriptor.interface}${message.descriptor.method}`;
-        if (interfaceMethod === 'RecordsQuery') {
-          const reply = await this.recordsQuery(message);
-          if (reply) {
-            return reply;
-          } else {
-            console.log('TODO dwn.processMessage() and send response');
-          }
-        } else if (interfaceMethod === 'RecordsWrite') {
-          const isWritten = await this.recordsWrite(message, data);
-          if (isWritten) {
-            console.log('TODO dwn.processMessage() and send response');
-          } else {
-            return;
-          }
-        } else {
-          return;
+        switch (interfaceMethod) {
+          case 'RecordsQuery':
+            const reply = await this.recordsQuery(message);
+            if (reply) {
+              return reply;
+            } else {
+              console.log('TODO dwn.processMessage() and send response');
+            }
+            break;
+          case 'RecordsWrite':
+            const isWritten = await this.recordsWrite(message, data);
+            if (isWritten) {
+              console.log('TODO dwn.processMessage() and send response');
+            } else {
+              return;
+            }
+            break;
+          default:
+            // todo
         }
       }
     } catch (err) {

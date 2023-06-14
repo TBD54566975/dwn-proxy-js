@@ -18,12 +18,8 @@ interface IRecords {
 interface IHandle {
   (message: DwnMessage, data: string | void): Promise<void | MessageReply>;
 }
-export interface IDwn {
-  records: IRecords;
-  handle: IHandle;
-}
 
-export default class Dwn implements IDwn {
+export default class DwnProxy {
   #handlers: IHandlers = {};
 
   #recordsQuery = async message => {

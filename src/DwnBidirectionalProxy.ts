@@ -4,7 +4,7 @@ import Http from './Http.js';
 import { IOutbound, Outbound } from './Outbound.js';
 import { DidIonApi } from '@tbd54566975/dids';
 import DwnHttp from './DwnHttp.js';
-import Dwn, { IDwn } from './Dwn.js';
+import DwnProxy from './DwnProxy.js';
 
 interface IRestful {
   (path: string, handler: IRestfulHandler): void;
@@ -13,16 +13,16 @@ interface IListen {
   (port: number): Promise<void>;
 }
 
-export class App {
+export class DwnBidirectionalProxy {
   #signatureInput?: SignatureInput;
   #outbound: IOutbound;
 
-  dwn: IDwn;
+  dwn: DwnProxy;
 
   constructor(signatureInput?: SignatureInput) {
     this.#signatureInput = signatureInput;
     this.#outbound = new Outbound(this.#signatureInput);
-    this.dwn = new Dwn();
+    this.dwn = new DwnProxy();
   }
 
   post: IRestful = (path, handler) => this.#outbound.post(path, handler);
@@ -62,6 +62,7 @@ export class App {
         DwnHttp.reply(res, reply);
       } else {
         this.#outbound.handle(req, res);
+        // TODO I think I can place the dwnClient here instead
       }
     });
     console.log(`Listening on port ${port}`);

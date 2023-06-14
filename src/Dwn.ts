@@ -7,9 +7,6 @@ export interface IRecordsQueryHandler {
 export interface IRecordsWriteHandler {
   (message: DwnMessage, data: any): Promise<boolean>;
 }
-interface IHandler {
-  (message: DwnMessage, data: string | void): Promise<void | MessageReply>;
-}
 interface IHandlers {
   recordsQuery?: IRecordsQueryHandler;
   recordsWrite?: IRecordsWriteHandler;
@@ -29,7 +26,7 @@ export interface IDwn {
 export default class Dwn implements IDwn {
   #handlers: IHandlers = {};
 
-  #recordsQuery: IHandler = async message => {
+  #recordsQuery = async message => {
     if (!this.#handlers.recordsQuery) {
       // todo probably handle gracefully here, rather than throw an error
       throw new Error('Handler not defined');
@@ -43,7 +40,7 @@ export default class Dwn implements IDwn {
     }
   };
 
-  #recordsWrite: IHandler = async (message, data) => {
+  #recordsWrite = async (message, data) => {
     if (!this.#handlers.recordsWrite) {
       // todo probably handle gracefully here, rather than throw an error
       throw new Error('Handler not defined');

@@ -1,47 +1,29 @@
 import { SignatureInput } from '@tbd54566975/dwn-sdk-js';
-import { IRecordsQueryHandler, IRecordsWriteHandler, IRestfulHandler } from './types.js';
+import { IRestfulHandler } from './types.js';
 import Http from './Http.js';
-import { IInbound, Inbound } from './Inbound.js';
 import { IOutbound, Outbound } from './Outbound.js';
 import { DidIonApi } from '@tbd54566975/dids';
 import DwnHttp from './DwnHttp.js';
+import Dwn, { IDwn } from './Dwn.js';
 
-interface IRecords {
-  query: (handler: IRecordsQueryHandler) => void;
-  write: (handler: IRecordsWriteHandler) => void;
-}
-interface IDwn {
-  records: IRecords;
-}
 interface IRestful {
   (path: string, handler: IRestfulHandler): void;
 }
 interface IListen {
   (port: number): Promise<void>;
 }
-export interface IApp {
-  dwn: IDwn;
-  post: IRestful;
-  listen: IListen;
-}
 
-export class App implements IApp {
+export class App {
   #signatureInput?: SignatureInput;
-  #inbound: IInbound;
   #outbound: IOutbound;
+
+  dwn: IDwn;
 
   constructor(signatureInput?: SignatureInput) {
     this.#signatureInput = signatureInput;
-    this.#inbound = new Inbound();
     this.#outbound = new Outbound(this.#signatureInput);
+    this.dwn = new Dwn();
   }
-
-  dwn: IDwn = {
-    records: {
-      query : handler => this.#inbound.recordsQuery = handler,
-      write : handler => this.#inbound.recordsWrite = handler
-    }
-  };
 
   post: IRestful = (path, handler) => this.#outbound.post(path, handler);
 
@@ -76,8 +58,8 @@ export class App implements IApp {
     await Http.createServer(port, async (req, res) => {
       const dwnRequest = await DwnHttp.parse(req);
       if (dwnRequest) {
-        const record = await this.#inbound.handle(dwnRequest.message, dwnRequest.data);
-        DwnHttp.reply(res, record);
+        const reply = await this.dwn.handle(dwnRequest.message, dwnRequest.data);
+        DwnHttp.reply(res, reply);
       } else {
         this.#outbound.handle(req, res);
       }

@@ -5,6 +5,7 @@ import { IInbound, Inbound } from './Inbound.js';
 import { IOutbound, Outbound } from './Outbound.js';
 import { DidIonApi } from '@tbd54566975/dids';
 import DwnHttp from './DwnHttp.js';
+import { DwnHttpServer } from './dwn-http-server-js/index.js';
 
 interface IRecords {
   query: (handler: IRecordsQueryHandler) => void;
@@ -29,6 +30,7 @@ export class App implements IApp {
   #signatureInput?: SignatureInput;
   #inbound: IInbound;
   #outbound: IOutbound;
+  #server: DwnHttpServer;
 
   constructor(signatureInput?: SignatureInput) {
     // this.#inbound = new Inbound();
@@ -71,6 +73,16 @@ export class App implements IApp {
       };
     }
 
+    this.#server = new DwnHttpServer({
+      fallback   : async () => console.log('outbound'),
+      dwnProcess : {
+        preProcess: async dwnRequest => {
+          console.log('inbound', dwnRequest);
+        }
+      }
+    });
+    this.#server.listen(port);
+
     this.#inbound = new Inbound();
     this.#outbound = new Outbound(this.#signatureInput);
 
@@ -83,6 +95,5 @@ export class App implements IApp {
         this.#outbound.handle(req, res);
       }
     });
-    console.log(`Listening on port ${port}`);
   };
 }

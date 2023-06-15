@@ -37,17 +37,20 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { App } from '@tbd54566975/dwn-proxy-js';
+import { DwnProxy } from '@tbd54566975/dwn-proxy-js';
 
-const app = new App();
+const proxy = new DwnProxy();
 
 // your inbound handler for RecordsWrite's
-app.dwn.records.write(
-  async message => {
+proxy.dwn.records.write(
+  async (message, data) => {
     const { descriptor: { protocol, schema }} = message;
 
     if (protocol === 'TBDEX' && schema === 'RFQ') {
-      const response = await fetch(`/your/api/rfq`);
+      const response = await fetch(`/your/api/rfq`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
       return response.status === 200;
     }
 
@@ -56,7 +59,7 @@ app.dwn.records.write(
 );
 
 // your outbound API
-app.post('/api/quote', async req => {
+proxy.post('/api/quote', async req => {
   // you could do your own custom auth here
   const { targetDid, quote } = await req.body.json();
 
@@ -68,7 +71,7 @@ app.post('/api/quote', async req => {
 });
 
 const PORT = 3000;
-app.listen(PORT);
+proxy.listen(PORT);
 ```
 
 ## `App.dwn.records.query(handler)`
@@ -76,7 +79,7 @@ app.listen(PORT);
 Method for handling inbound `RecordsQuery` DWN Messages.
 
 ```typescript
-app.dwn.records.query(
+proxy.dwn.records.query(
   async message => { // handler function
     // space for custom middleware
     await myCustomMiddleware(message);
@@ -98,21 +101,24 @@ app.dwn.records.query(
 Method for handling inbound `RecordsWrite` DWN Messages.
 
 ```typescript
-app.dwn.records.write(
-  async message => {
+proxy.dwn.records.write(
+  async (message, data) => {
     const { descriptor: { protocol, schema }} = message;
 
     if (protocol === 'TBDEX' && schema === 'RFQ') {
-      const response = await fetch(`/your/api/rfq`);
+      const response = await fetch(`/your/api/rfq`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
       return response.status === 200;
     }
 
-    return false;
+    return false; // dwn.processMessage() will not be called
   }
 );
 ```
 
-`handler` - `(message: DwnMessage) => Promise<boolean>`
+`handler` - `(message: DwnMessage, data: string | void) => Promise<boolean>`
   - If the return is `true` then `dwn.processMessage()` will be called
   - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
 
@@ -121,7 +127,7 @@ app.dwn.records.write(
 Method for defining an outbound HTTP POST API call.
 
 ```typescript
-app.post('/api/something', async req => {
+proxy.post('/api/something', async req => {
   const { targetDid, something } = await req.body.json();
 
   // returning this will send the DWN Message to the targetDid
@@ -131,7 +137,7 @@ app.post('/api/something', async req => {
   };
 });
 
-app.post('/api/something-else', async req => {
+proxy.post('/api/something-else', async req => {
   const somethingElse = await req.body.json();
   await someCustomMiddleware(somethingElse);
   // void return means no DWN Message is sent on

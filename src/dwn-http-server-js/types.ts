@@ -21,11 +21,11 @@ export interface IPreProcess {
 }
 
 export type DwnHttpServerOptions = Partial<{
-  fallback?: IRequestListener;
-  dwnProcess?: Partial<{
+  fallback: IRequestListener;
+  storagePrefix: string;
+  dwnProcess: Partial<{
     disable: boolean;
     preProcess: IPreProcess;
     postProcess: (dwnRequest: DwnRequest) => Promise<void>;
   }>;
 }>;
-

@@ -73,8 +73,9 @@ export class DwnProxy {
 
     this.#server = new DwnHttpServer();
     this.#server.listen(port, {
-      fallback   : this.#outbound,
-      dwnProcess : {
+      fallback      : this.#outbound,
+      storagePrefix : './dwn-proxy-data',
+      dwnProcess    : {
         preProcess: this.#inbound
       }
     });

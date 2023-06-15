@@ -39,5 +39,6 @@ export class DwnHttpServer {
     await new Promise(resolve =>
       server.listen(port, 'localhost', () => resolve(undefined))
     );
+    console.log(`Listening for HTTP requests at http://localhost:${port}`);
   };
 }

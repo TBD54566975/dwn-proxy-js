@@ -1,67 +1,29 @@
-import {
-  DwnHttpServer,
-  DwnMessage,
-  IPreProcess,
-  IRequestListener } from './dwn-http-server-js/DwnHttpServer.js';
-import { SignatureInput } from '@tbd54566975/dwn-sdk-js';
-import http from 'http';
+import { DwnHttpServer } from './dwn-http-server-js/DwnHttpServer.js';
 import url from 'url';
 import { DwnHttpClient } from './dwn-http-client-js/DwnHttpClient.js';
-import { DidIonApi } from '@tbd54566975/dids';
-
-type DwnRecord = {
-  todo: string; // todo
-}
-interface IRecordsQuery {
-  (message: DwnMessage): Promise<void | DwnRecord>;
-}
-interface IRecordsWrite {
-  (message: DwnMessage, data: any): Promise<boolean>;
-}
-interface IRecords {
-  query: (handler: IRecordsQuery) => void;
-  write: (handler: IRecordsWrite) => void;
-}
-interface IDwn {
-  records: IRecords;
-}
-interface IRestful {
-  (req: http.IncomingMessage): Promise<void | DwnRecord>;
-}
-interface IPost {
-  (path: string, handler: IRestful): void;
-}
-interface IRestfulHandler {
-  method: string;
-  path: string;
-  handler: IRestful
-}
-
-type Options = Partial<{
-  signatureInput: SignatureInput
-}>;
-export type DwnProxyOptions = Options;
+import { DwnProxyOptions, IRecordsQuery, IRecordsWrite, IRestfulHandler } from './types.js';
+import { generateSignatureInput } from './utils.js';
 
 export class DwnProxy {
-  #options: Options;
+  #options: DwnProxyOptions;
 
   #server: DwnHttpServer;
   #client: DwnHttpClient;
 
   #recordsQuery: IRecordsQuery;
   #recordsWrite: IRecordsWrite;
-  #restfulHandlers: Array<IRestfulHandler> = [];
+  #posts: Array<IRestfulHandler> = [];
 
-  dwn: IDwn = {
+  dwn = {
     records: {
       query : handler => this.#recordsQuery = handler,
       write : handler => this.#recordsWrite = handler
     }
   };
 
-  post: IPost = (path, handler) => this.#restfulHandlers.push({ method: 'POST', path, handler });
+  post = (path, handler) => this.#posts.push({ path, handler });
 
-  #inbound: IPreProcess = async dwnRequest => {
+  #inbound = async dwnRequest => {
     const interfaceMethod = `${dwnRequest.message.descriptor.interface}${dwnRequest.message.descriptor.method}`;
     if (interfaceMethod === 'RecordsQuery') {
       const record = await this.#recordsQuery(dwnRequest.message);
@@ -77,10 +39,10 @@ export class DwnProxy {
     }
   };
 
-  #outbound: IRequestListener = async (req, res) => {
+  #outbound = async (req, res) => {
     try {
       const path = url.parse(req.url as string).pathname;
-      const restfulHandler = this.#restfulHandlers.find(x => x.method === req.method && x.path === path);
+      const restfulHandler = this.#posts.find(x => x.path === path);
 
       if (!restfulHandler) {
         res.statusCode = 404;
@@ -98,33 +60,12 @@ export class DwnProxy {
     res.end();
   };
 
-  listen = async (port: number, options?: Options) => {
+  listen = async (port: number, options?: DwnProxyOptions) => {
     this.#options = options ?? {};
 
     // TODO this is temporary
-    if (!this.#options.signatureInput) {
-      const didState = await new DidIonApi().create({
-        services: [{
-          id              : 'dwn',
-          type            : 'DecentralizedWebNode',
-          serviceEndpoint : {
-            nodes: [ `http://localhost:${port}` ]
-          }
-        }]
-      });
-
-      console.log(`Created DID and hosting: ${didState.id}`);
-
-      const { keys } = didState;
-      const [ key ] = keys;
-      const { privateKeyJwk } = key;
-      const kidFragment = privateKeyJwk.kid || key.id;
-      const kid = `${didState.id}#${kidFragment}`;
-      this.#options.signatureInput = {
-        privateJwk      : privateKeyJwk,
-        protectedHeader : { alg: privateKeyJwk.crv, kid }
-      };
-    }
+    if (!this.#options.signatureInput)
+      this.#options.signatureInput = await generateSignatureInput(`http://localhost:${port}`);
 
     this.#client = new DwnHttpClient({
       signatureInput: this.#options.signatureInput

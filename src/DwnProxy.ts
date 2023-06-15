@@ -79,6 +79,9 @@ export class DwnProxy {
       } else {
         return;
       }
+    } else {
+      console.error('Interface method not supported', interfaceMethod);
+      return { halt: true };
     }
   };
 

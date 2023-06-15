@@ -1,2 +1,1 @@
-export { App } from './App.js';
-export * from './types.js';
+export { DwnProxy } from './DwnProxy.js';

@@ -1,6 +1,5 @@
-import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids';
 import { RecordsWrite, SignatureInput } from '@tbd54566975/dwn-sdk-js';
-import { DwnRecord } from './types.js';
+import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids';
 
 // TODO don't love this
 const resolveEndpoint = async (did: string): Promise<string> => {
@@ -46,20 +45,28 @@ const sendMessage = async (endpoint: string, target: string, message: RecordsWri
   console.log(resp.status);
 };
 
+type DwnRecord = {
+  todo: string; // todo
+}
 interface ISend {
   (did: string, record: DwnRecord): Promise<void>;
 }
 
-export default class DwnClient {
-  #signatureInput: SignatureInput;
+type Options = {
+  signatureInput: SignatureInput;
+}
+export type DwnHttpClientOptions = Options;
 
-  constructor(signatureInput: SignatureInput) {
-    this.#signatureInput = signatureInput;
+export class DwnHttpClient {
+  #options: Options;
+
+  constructor(options: Options) {
+    this.#options = options;
   }
 
   send: ISend = async (did, record) => {
     const endpoint = await resolveEndpoint(did);
-    const recordsWriteMessage = await createMessage(this.#signatureInput, JSON.stringify(record));
+    const recordsWriteMessage = await createMessage(this.#options.signatureInput, JSON.stringify(record));
     await sendMessage(endpoint, did, recordsWriteMessage);
   };
 }

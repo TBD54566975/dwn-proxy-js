@@ -52,10 +52,6 @@ export class DwnProxy {
   #recordsWrite: IRecordsWrite;
   #restfulHandlers: Array<IRestfulHandler> = [];
 
-  constructor(options?: Options) {
-    this.#options = options ?? {};
-  }
-
   dwn: IDwn = {
     records: {
       query : handler => this.#recordsQuery = handler,
@@ -73,12 +69,8 @@ export class DwnProxy {
         return {}; // todo reply
       }
     } else if (interfaceMethod === 'RecordsWrite') {
-      const isWritten = await this.#recordsWrite(dwnRequest.message, dwnRequest.data);
-      if (isWritten) {
-        console.log('TODO dwn.processMessage() and send response');
-      } else {
-        return;
-      }
+      const isValid = await this.#recordsWrite(dwnRequest.message, dwnRequest.data);
+      return { halt: !isValid };
     } else {
       console.error('Interface method not supported', interfaceMethod);
       return { halt: true };
@@ -106,7 +98,9 @@ export class DwnProxy {
     res.end();
   };
 
-  listen = async (port: number) => {
+  listen = async (port: number, options?: Options) => {
+    this.#options = options ?? {};
+
     // TODO this is temporary
     if (!this.#options.signatureInput) {
       const didState = await new DidIonApi().create({

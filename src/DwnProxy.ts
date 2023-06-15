@@ -88,12 +88,12 @@ export class DwnProxy {
   #outbound: IRequestListener = async (req, res) => {
     try {
       const path = url.parse(req.url as string).pathname;
-      const handler = this.#restfulHandlers.find(x => x.method === req.method && x.path === path);
+      const restfulHandler = this.#restfulHandlers.find(x => x.method === req.method && x.path === path);
 
-      if (!handler) {
+      if (!restfulHandler) {
         res.statusCode = 404;
       } else {
-        const record = await handler.handler(req);
+        const record = await restfulHandler.handler(req);
         if (record)
           this.#client.send('some-did', record);
         res.statusCode = 202;
@@ -136,12 +136,12 @@ export class DwnProxy {
       signatureInput: this.#options.signatureInput
     });
 
-    this.#server = new DwnHttpServer({
+    this.#server = new DwnHttpServer();
+    this.#server.listen(port, {
       fallback   : this.#outbound,
       dwnProcess : {
         preProcess: this.#inbound
       }
     });
-    this.#server.listen(port);
   };
 }

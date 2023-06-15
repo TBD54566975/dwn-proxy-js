@@ -32,6 +32,9 @@ type Options = Partial<{
   }>;
 }>;
 export type DwnHttpServerOptions = Options;
+interface IListen {
+  (port: number, options?: Options): Promise<void>;
+}
 
 const readOctetStream = async (req: http.IncomingMessage): Promise<string | void> => {
   let data = '';
@@ -61,10 +64,6 @@ const parseDwnRequest = async (req: http.IncomingMessage): Promise<DwnRequest | 
 export class DwnHttpServer {
   #options: Options;
 
-  constructor(options?: Options) {
-    this.#options = options ?? {};
-  }
-
   #listener: IRequestListener = async (req, res) => {
     const dwnRequest = await parseDwnRequest(req);
     if (!dwnRequest) {
@@ -88,7 +87,8 @@ export class DwnHttpServer {
     }
   };
 
-  listen = async (port: number) => {
+  listen: IListen = async (port: number, options?: Options) => {
+    this.#options = options ?? {};
     const server = http.createServer(this.#listener);
     await new Promise(resolve =>
       server.listen(port, 'localhost', () => resolve(undefined))

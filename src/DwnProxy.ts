@@ -65,7 +65,7 @@ export class DwnProxy {
 
     // TODO this is temporary
     if (!this.#options.signatureInput)
-      this.#options.signatureInput = await generateSignatureInput(`http://localhost:${port}`);
+      this.#options.signatureInput = await generateSignatureInput(`http://0.0.0.0:${port}`);
 
     this.#client = new DwnHttpClient({
       signatureInput: this.#options.signatureInput

@@ -63,8 +63,8 @@ export class DwnHttpServer {
     this.#options = options ?? {};
     const server = http.createServer(this.#listener);
     await new Promise(resolve =>
-      server.listen(port, 'localhost', () => resolve(undefined))
+      server.listen(port, '0.0.0.0', () => resolve(undefined))
     );
-    console.log(`Listening for HTTP requests at http://localhost:${port}`);
+    console.log(`Listening for HTTP requests at http://0.0.0.0:${port}`);
   };
 }

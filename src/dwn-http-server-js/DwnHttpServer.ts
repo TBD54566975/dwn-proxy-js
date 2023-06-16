@@ -1,11 +1,31 @@
 import http from 'http';
 import { DwnHttpServerOptions } from './types.js';
 import { parseDwnRequest } from './utils.js';
+import { Encoder } from '@tbd54566975/dwn-sdk-js';
 
 // TODO
 //    let's use Express.js instead of the native http module
 //    this way, the DwnHttpServer can support everything
 //    Express.js supports as well
+
+const encodeMessageReply = (obj, code = 202) => ({
+  result: {
+    reply: {
+      status: {
+        code
+      },
+      entries: [
+        {
+          descriptor: {
+            dataFormat: 'application/json'
+          },
+          encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
+        }
+      ],
+      record: {}
+    }
+  }
+});
 
 export class DwnHttpServer {
   #options: DwnHttpServerOptions;
@@ -21,15 +41,21 @@ export class DwnHttpServer {
       if (this.#options.dwnProcess?.preProcess)
         preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
-      if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
-        console.log('todo call dwn.processMessage()');
+      const messageReply = preProcessResult?.reply ?? { hello: 'world' };
+
+      if (!messageReply) {
+        if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
+          console.log('todo call dwn.processMessage()');
+        }
+
+        // todo postProcess should also receive the result of the dwn.processMessage()
+        if (this.#options.dwnProcess?.postProcess)
+          await this.#options.dwnProcess.postProcess(dwnRequest);
       }
 
-      // todo postProcess should also receive the result of the dwn.processMessage()
-      if (this.#options.dwnProcess?.postProcess)
-        await this.#options.dwnProcess.postProcess(dwnRequest);
-
-      console.log('todo respond to client');
+      res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
+      res.status = 200;
+      res.end();
     }
   };
 

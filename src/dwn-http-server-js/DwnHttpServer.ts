@@ -43,12 +43,13 @@ export class DwnHttpServer {
         if (this.#options.fallback) this.#options.fallback(req, res);
         else console.log('todo handle error response');
       } else {
-      // todo what about overriding a RecordsQuery with your own record?
+        // todo what about overriding a RecordsQuery with your own record?
         let preProcessResult;
         if (this.#options.dwnProcess?.preProcess)
           preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
-        const messageReply = preProcessResult?.reply ?? { hello: 'world' };
+        console.log('preProcessResult', preProcessResult);
+        const messageReply = preProcessResult?.reply;
 
         if (!messageReply) {
           // todo right now, assumed did in options

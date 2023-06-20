@@ -4,7 +4,7 @@ import url from 'url';
 import { DwnHttpClient } from './dwn-http-client-js/DwnHttpClient.js';
 import { DwnProxyOptions, IRecordsQuery, IRecordsWrite, IRestfulHandler } from './types.js';
 import { generateDid } from './utils.js';
-import { RecordsWrite } from '@tbd54566975/dwn-sdk-js';
+import { ProtocolDefinition, RecordsWrite } from '@tbd54566975/dwn-sdk-js';
 
 export class DwnProxy {
   #options: DwnProxyOptions;
@@ -12,11 +12,15 @@ export class DwnProxy {
   #server: DwnHttpServer;
   #client: DwnHttpClient;
 
+  #protocols: Array<ProtocolDefinition> = [];
   #recordsQuery: IRecordsQuery;
   #recordsWrite: IRecordsWrite;
   #posts: Array<IRestfulHandler> = [];
 
   dwn = {
+    protocols: {
+      configure: definition => this.#protocols.push(definition)
+    },
     records: {
       query : handler => this.#recordsQuery = handler,
       write : handler => this.#recordsWrite = handler
@@ -58,8 +62,11 @@ export class DwnProxy {
             authorizationSignatureInput : this.#options.didState.signatureInput
           });
           const result = await Dwn.processMessage(this.#options.didState.id, record.message, data);
-          if (result.status.code === 202 && intent.target)
-            this.#client.send(intent.target, record.message);
+          if (result.status.code === 202) {
+            res.setHeader('dwn-record-id', record.message.recordId);
+            if (intent.target)
+              this.#client.send(intent.target, record.message);
+          }
         }
         res.statusCode = 202;
       }
@@ -77,6 +84,9 @@ export class DwnProxy {
     // TODO this is temporary
     if (!this.#options.didState)
       this.#options.didState = await generateDid(this.#options.serviceEndpoint ?? `http://0.0.0.0:${port}`);
+
+    for (const definition of this.#protocols)
+      await Dwn.configureProtocol(this.#options.didState.id, definition, this.#options.didState.signatureInput);
 
     this.#client = new DwnHttpClient({
       signatureInput: this.#options.didState.signatureInput

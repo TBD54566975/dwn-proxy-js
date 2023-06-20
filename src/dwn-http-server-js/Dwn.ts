@@ -3,7 +3,10 @@ import {
   MessageReply,
   MessageStoreLevel,
   DataStoreLevel,
-  EventLogLevel } from '@tbd54566975/dwn-sdk-js';
+  EventLogLevel,
+  ProtocolsConfigure,
+  SignatureInput,
+  ProtocolDefinition } from '@tbd54566975/dwn-sdk-js';
 
 export class Dwn {
   static storagePrefix = './data';
@@ -26,4 +29,11 @@ export class Dwn {
 
     return await Dwn.#instance.processMessage(tenant, rawMessage, dataStream);
   };
+
+  static configureProtocol =
+    async (tenant: string, definition: ProtocolDefinition, signatureInput: SignatureInput) => {
+      const { message } = await ProtocolsConfigure.create({ definition, authorizationSignatureInput: signatureInput });
+      const { status } = await Dwn.processMessage(tenant, message);
+      if (status.code !== 202) console.error('Failed to configure protocol', definition.protocol, status);
+    };
 }

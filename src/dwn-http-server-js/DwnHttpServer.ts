@@ -38,7 +38,6 @@ export class DwnHttpServer {
   #listener: IHttpRequestListener = async (req, res) => {
     try {
       const dwnRequest = await parseDwnRequest(req);
-      console.log('kw dbg', dwnRequest);
       if (!dwnRequest) {
         if (this.#options.fallback) this.#options.fallback(req, res);
         else console.log('todo handle error response');
@@ -53,7 +52,7 @@ export class DwnHttpServer {
 
         if (!messageReply) {
           // todo right now, assumed did in options
-          if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
+          if (!this.#options.dwnProcess?.disable && !preProcessResult?.halt) {
             console.log('Processing DWN Message...');
             const result = await Dwn.processMessage(
               dwnRequest.target ?? this.#options.did,

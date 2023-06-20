@@ -48,17 +48,17 @@ export class DwnHttpServer {
           preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
         console.log('preProcessResult', preProcessResult);
-        const messageReply = preProcessResult?.reply;
+        let messageReply = preProcessResult?.reply;
 
         if (!messageReply) {
           // todo right now, assumed did in options
           if (!this.#options.dwnProcess?.disable && !preProcessResult?.halt) {
             console.log('Processing DWN Message...');
-            const result = await Dwn.processMessage(
+            messageReply = await Dwn.processMessage(
               dwnRequest.target ?? this.#options.did,
               dwnRequest.message,
               dwnRequest.data);
-            console.log('Processed DWN Message', result);
+            console.log('Processed DWN Message', messageReply);
           }
 
           // todo postProcess should also receive the result of the dwn.processMessage()

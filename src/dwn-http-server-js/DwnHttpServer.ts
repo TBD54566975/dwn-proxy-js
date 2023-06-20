@@ -1,35 +1,71 @@
 import http from 'http';
 import { DwnHttpServerOptions } from './types.js';
 import { parseDwnRequest } from './utils.js';
+import { Encoder } from '@tbd54566975/dwn-sdk-js';
 
 // TODO
 //    let's use Express.js instead of the native http module
 //    this way, the DwnHttpServer can support everything
 //    Express.js supports as well
 
+export interface IHttpRequestListener {
+  (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
+}
+
+const encodeMessageReply = (obj, code = 202) => ({
+  result: {
+    reply: {
+      status: {
+        code
+      },
+      entries: [
+        {
+          descriptor: {
+            dataFormat: 'application/json'
+          },
+          encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
+        }
+      ],
+      record: {}
+    }
+  }
+});
+
 export class DwnHttpServer {
   #options: DwnHttpServerOptions;
 
-  #listener = async (req, res) => {
-    const dwnRequest = await parseDwnRequest(req);
-    if (!dwnRequest) {
-      if (this.#options.fallback) this.#options.fallback(req, res);
-      else console.log('todo handle error response');
-    } else {
+  #listener: IHttpRequestListener = async (req, res) => {
+    try {
+      const dwnRequest = await parseDwnRequest(req);
+      if (!dwnRequest) {
+        if (this.#options.fallback) this.#options.fallback(req, res);
+        else console.log('todo handle error response');
+      } else {
       // todo what about overriding a RecordsQuery with your own record?
-      let preProcessResult;
-      if (this.#options.dwnProcess?.preProcess)
-        preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
+        let preProcessResult;
+        if (this.#options.dwnProcess?.preProcess)
+          preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
-      if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
-        console.log('todo call dwn.processMessage()');
+        const messageReply = preProcessResult?.reply ?? { hello: 'world' };
+
+        if (!messageReply) {
+          if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
+            console.log('todo call dwn.processMessage()');
+          }
+
+          // todo postProcess should also receive the result of the dwn.processMessage()
+          if (this.#options.dwnProcess?.postProcess)
+            await this.#options.dwnProcess.postProcess(dwnRequest);
+        }
+
+        res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
+        res.statusCode = 200;
+        res.end();
       }
-
-      // todo postProcess should also receive the result of the dwn.processMessage()
-      if (this.#options.dwnProcess?.postProcess)
-        await this.#options.dwnProcess.postProcess(dwnRequest);
-
-      console.log('todo respond to client');
+    } catch (err) {
+      console.error(err);
+      res.statusCode = 500;
+      res.end();
     }
   };
 
@@ -37,8 +73,8 @@ export class DwnHttpServer {
     this.#options = options ?? {};
     const server = http.createServer(this.#listener);
     await new Promise(resolve =>
-      server.listen(port, 'localhost', () => resolve(undefined))
+      server.listen(port, '0.0.0.0', () => resolve(undefined))
     );
-    console.log(`Listening for HTTP requests at http://localhost:${port}`);
+    console.log(`Listening for HTTP requests at http://0.0.0.0:${port}`);
   };
 }

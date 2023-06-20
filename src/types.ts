@@ -14,15 +14,21 @@ export interface IRecordsWrite {
   (message: DwnMessage, data: any): Promise<boolean>;
 }
 
+export type OutboundDwnIntent = {
+  targetDid: string;
+  record: DwnRecord;
+}
+
 export interface IRestful {
-  (req: http.IncomingMessage): Promise<void | DwnRecord>;
+  (req: http.IncomingMessage): Promise<void | OutboundDwnIntent>;
 }
 
 export interface IRestfulHandler {
   path: string;
-  handler: IRestful
+  handler: IRestful;
 }
 
 export type DwnProxyOptions = Partial<{
-  signatureInput: SignatureInput
+  signatureInput: SignatureInput;
+  serviceEndpoint: string;
 }>;

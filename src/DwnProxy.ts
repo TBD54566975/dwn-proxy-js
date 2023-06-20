@@ -47,9 +47,9 @@ export class DwnProxy {
       if (!restfulHandler) {
         res.statusCode = 404;
       } else {
-        const record = await restfulHandler.handler(req);
-        if (record)
-          this.#client.send('some-did', record);
+        const intent = await restfulHandler.handler(req);
+        if (intent)
+          this.#client.send(intent.targetDid, intent.record);
         res.statusCode = 202;
       }
     } catch (err) {

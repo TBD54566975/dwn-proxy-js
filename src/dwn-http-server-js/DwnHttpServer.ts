@@ -36,7 +36,6 @@ export class DwnHttpServer {
 
   #listener: IHttpRequestListener = async (req, res) => {
     try {
-      console.log('KW DBG: new request received', req.method, req.url);
       const dwnRequest = await parseDwnRequest(req);
       if (!dwnRequest) {
         if (this.#options.fallback) this.#options.fallback(req, res);

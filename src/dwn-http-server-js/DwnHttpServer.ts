@@ -2,6 +2,7 @@ import http from 'http';
 import { DwnHttpServerOptions } from './types.js';
 import { parseDwnRequest } from './utils.js';
 import { Encoder } from '@tbd54566975/dwn-sdk-js';
+import { Dwn } from './Dwn.js';
 
 // TODO
 //    let's use Express.js instead of the native http module
@@ -37,6 +38,7 @@ export class DwnHttpServer {
   #listener: IHttpRequestListener = async (req, res) => {
     try {
       const dwnRequest = await parseDwnRequest(req);
+      console.log('kw dbg', dwnRequest);
       if (!dwnRequest) {
         if (this.#options.fallback) this.#options.fallback(req, res);
         else console.log('todo handle error response');
@@ -49,8 +51,14 @@ export class DwnHttpServer {
         const messageReply = preProcessResult?.reply ?? { hello: 'world' };
 
         if (!messageReply) {
+          // todo right now, assumed did in options
           if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
-            console.log('todo call dwn.processMessage()');
+            console.log('Processing DWN Message...');
+            const result = await Dwn.processMessage(
+              dwnRequest.target ?? this.#options.did,
+              dwnRequest.message,
+              dwnRequest.data);
+            console.log('Processed DWN Message', result);
           }
 
           // todo postProcess should also receive the result of the dwn.processMessage()
@@ -73,8 +81,10 @@ export class DwnHttpServer {
     this.#options = options ?? {};
     const server = http.createServer(this.#listener);
     await new Promise(resolve =>
-      server.listen(port, '0.0.0.0', () => resolve(undefined))
+      server.listen(port, '0.0.0.0', () => {
+        console.log(`Listening for HTTP requests at http://0.0.0.0:${port}`);
+        resolve(undefined);
+      })
     );
-    console.log(`Listening for HTTP requests at http://0.0.0.0:${port}`);
   };
 }

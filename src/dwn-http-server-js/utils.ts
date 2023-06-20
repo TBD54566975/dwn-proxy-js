@@ -17,10 +17,11 @@ export const parseDwnRequest = async (req: http.IncomingMessage): Promise<DwnReq
   const raw = req.headers['dwn-request'] as string | void;
   if (raw) {
     const jsonRpc = JSON.parse(raw);
-    const message = jsonRpc.params.message;
+    const { target, message } = jsonRpc.params;
     const data = await readOctetStream(req);
 
     return {
+      target,
       message,
       data
     };

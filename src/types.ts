@@ -1,4 +1,5 @@
 import { DwnMessage } from './dwn-http-server-js/types.js';
+import { DidState } from '@tbd54566975/dids';
 import { SignatureInput } from '@tbd54566975/dwn-sdk-js';
 import http from 'http';
 
@@ -15,8 +16,8 @@ export interface IRecordsWrite {
 }
 
 export type OutboundDwnIntent = {
-  targetDid: string;
-  record: DwnRecord;
+  target?: string;
+  data: any;
 }
 
 export interface IRestful {
@@ -28,7 +29,11 @@ export interface IRestfulHandler {
   handler: IRestful;
 }
 
-export type DwnProxyOptions = Partial<{
+export type DidStateWithSignatureInput = DidState & {
   signatureInput: SignatureInput;
+}
+
+export type DwnProxyOptions = Partial<{
+  didState: DidStateWithSignatureInput;
   serviceEndpoint: string;
 }>;

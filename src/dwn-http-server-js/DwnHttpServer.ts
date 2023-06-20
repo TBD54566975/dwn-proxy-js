@@ -35,31 +35,37 @@ export class DwnHttpServer {
   #options: DwnHttpServerOptions;
 
   #listener: IHttpRequestListener = async (req, res) => {
-    console.log('KW DBG: new request received', req.method, req.url);
-    const dwnRequest = await parseDwnRequest(req);
-    if (!dwnRequest) {
-      if (this.#options.fallback) this.#options.fallback(req, res);
-      else console.log('todo handle error response');
-    } else {
+    try {
+      console.log('KW DBG: new request received', req.method, req.url);
+      const dwnRequest = await parseDwnRequest(req);
+      if (!dwnRequest) {
+        if (this.#options.fallback) this.#options.fallback(req, res);
+        else console.log('todo handle error response');
+      } else {
       // todo what about overriding a RecordsQuery with your own record?
-      let preProcessResult;
-      if (this.#options.dwnProcess?.preProcess)
-        preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
+        let preProcessResult;
+        if (this.#options.dwnProcess?.preProcess)
+          preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
-      const messageReply = preProcessResult?.reply ?? { hello: 'world' };
+        const messageReply = preProcessResult?.reply ?? { hello: 'world' };
 
-      if (!messageReply) {
-        if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
-          console.log('todo call dwn.processMessage()');
+        if (!messageReply) {
+          if (!this.#options.dwnProcess?.disable && !preProcessResult.halt) {
+            console.log('todo call dwn.processMessage()');
+          }
+
+          // todo postProcess should also receive the result of the dwn.processMessage()
+          if (this.#options.dwnProcess?.postProcess)
+            await this.#options.dwnProcess.postProcess(dwnRequest);
         }
 
-        // todo postProcess should also receive the result of the dwn.processMessage()
-        if (this.#options.dwnProcess?.postProcess)
-          await this.#options.dwnProcess.postProcess(dwnRequest);
+        res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
+        res.statusCode = 200;
+        res.end();
       }
-
-      res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
-      res.statusCode = 200;
+    } catch (err) {
+      console.error(err);
+      res.statusCode = 500;
       res.end();
     }
   };

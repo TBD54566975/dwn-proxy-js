@@ -1,4 +1,4 @@
-import { DwnHttpServer } from './dwn-http-server-js/DwnHttpServer.js';
+import { DwnHttpServer, IHttpRequestListener } from './dwn-http-server-js/DwnHttpServer.js';
 import url from 'url';
 import { DwnHttpClient } from './dwn-http-client-js/DwnHttpClient.js';
 import { DwnProxyOptions, IRecordsQuery, IRecordsWrite, IRestfulHandler } from './types.js';
@@ -39,7 +39,7 @@ export class DwnProxy {
     }
   };
 
-  #outbound = async (req, res) => {
+  #outbound: IHttpRequestListener = async (req, res) => {
     try {
       const path = url.parse(req.url as string).pathname;
       const restfulHandler = this.#posts.find(x => x.path === path);
@@ -65,7 +65,7 @@ export class DwnProxy {
 
     // TODO this is temporary
     if (!this.#options.signatureInput)
-      this.#options.signatureInput = await generateSignatureInput(`http://0.0.0.0:${port}`);
+      this.#options.signatureInput = await generateSignatureInput(this.#options.serviceEndpoint ?? `http://0.0.0.0:${port}`);
 
     this.#client = new DwnHttpClient({
       signatureInput: this.#options.signatureInput

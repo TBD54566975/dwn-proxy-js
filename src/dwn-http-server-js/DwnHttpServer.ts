@@ -8,6 +8,10 @@ import { Encoder } from '@tbd54566975/dwn-sdk-js';
 //    this way, the DwnHttpServer can support everything
 //    Express.js supports as well
 
+export interface IHttpRequestListener {
+  (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
+}
+
 const encodeMessageReply = (obj, code = 202) => ({
   result: {
     reply: {
@@ -30,7 +34,8 @@ const encodeMessageReply = (obj, code = 202) => ({
 export class DwnHttpServer {
   #options: DwnHttpServerOptions;
 
-  #listener = async (req, res) => {
+  #listener: IHttpRequestListener = async (req, res) => {
+    console.log('KW DBG: new request received', req.method, req.url);
     const dwnRequest = await parseDwnRequest(req);
     if (!dwnRequest) {
       if (this.#options.fallback) this.#options.fallback(req, res);
@@ -54,7 +59,7 @@ export class DwnHttpServer {
       }
 
       res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
-      res.status = 200;
+      res.statusCode = 200;
       res.end();
     }
   };

@@ -20,9 +20,10 @@ export interface IRestful {
 
 export interface IRestfulHandler {
   path: string;
-  handler: IRestful
+  handler: IRestful;
 }
 
 export type DwnProxyOptions = Partial<{
-  signatureInput: SignatureInput
+  signatureInput: SignatureInput;
+  serviceEndpoint: string;
 }>;

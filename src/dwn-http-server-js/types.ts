@@ -9,6 +9,7 @@ export interface IRequestListener {
 export type DwnMessage = RecordsQueryMessage | RecordsWriteMessage;
 
 export type DwnRequest = {
+  target?: string;
   message: DwnMessage;
   data?: any; // TODO type this
 }
@@ -21,8 +22,10 @@ export interface IPreProcess {
 }
 
 export type DwnHttpServerOptions = Partial<{
-  fallback?: IRequestListener;
-  dwnProcess?: Partial<{
+  did: string;
+  fallback: IRequestListener;
+  storagePrefix: string;
+  dwnProcess: Partial<{
     disable: boolean;
     preProcess: IPreProcess;
     postProcess: (dwnRequest: DwnRequest) => Promise<void>;

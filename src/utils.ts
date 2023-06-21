@@ -1,7 +1,7 @@
 import { DidIonApi } from '@tbd54566975/dids';
-import { SignatureInput } from '@tbd54566975/dwn-sdk-js';
+import { DidStateWithSignatureInput } from './types.js';
 
-export const generateSignatureInput = async (endpoint: string): Promise<SignatureInput> => {
+export const generateDid = async (endpoint: string): Promise<DidStateWithSignatureInput> => {
   const didState = await new DidIonApi().create({
     services: [{
       id              : 'dwn',
@@ -20,7 +20,10 @@ export const generateSignatureInput = async (endpoint: string): Promise<Signatur
   const kidFragment = privateKeyJwk.kid || key.id;
   const kid = `${didState.id}#${kidFragment}`;
   return {
-    privateJwk      : privateKeyJwk,
-    protectedHeader : { alg: privateKeyJwk.crv, kid }
+    ...didState,
+    signatureInput: {
+      privateJwk      : privateKeyJwk,
+      protectedHeader : { alg: privateKeyJwk.crv, kid }
+    }
   };
 };

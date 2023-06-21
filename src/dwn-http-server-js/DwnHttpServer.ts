@@ -19,7 +19,7 @@ const encodeJsonRpc = reply => ({
   }
 });
 const encodeMessageReply = (obj, code = 202) =>
-  encodeJsonRpc({
+  encodeJsonRpc({ // todo try to use the MessageReply class directly instead
     status: {
       code
     },

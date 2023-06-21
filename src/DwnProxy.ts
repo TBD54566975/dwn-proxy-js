@@ -57,6 +57,7 @@ export class DwnProxy {
         if (intent) {
           const data = Buffer.from(JSON.stringify(intent.data), 'utf-8');
           const record = await RecordsWrite.create({
+            published                   : true, // todo
             data                        ,
             dataFormat                  : 'application/json',
             authorizationSignatureInput : this.#options.didState.signatureInput

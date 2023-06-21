@@ -20,8 +20,6 @@ export const parseDwnRequest = async (req: http.IncomingMessage): Promise<DwnReq
     const jsonRpc = JSON.parse(raw);
     const { target, message } = jsonRpc.params;
     const data = await readOctetStream(req);
-    console.log('kw dbg', data);
-    console.log('kw dbg', data.length);
 
     return {
       target,

@@ -60,7 +60,8 @@ export class DwnProxy {
             published                   : true, // todo
             data                        ,
             dataFormat                  : 'application/json',
-            authorizationSignatureInput : this.#options.didState.signatureInput
+            authorizationSignatureInput : this.#options.didState.signatureInput,
+            ...(intent.descriptors ?? {})
           });
           const result = await Dwn.processMessage(this.#options.didState.id, record.message, data);
           if (result.status.code === 202) {

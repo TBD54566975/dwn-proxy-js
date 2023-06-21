@@ -17,6 +17,7 @@ export interface IRecordsWrite {
 
 export type OutboundDwnIntent = {
   target?: string;
+  descriptors?: any;
   data: any;
 }
 

@@ -13,24 +13,27 @@ export interface IHttpRequestListener {
   (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>;
 }
 
-const encodeMessageReply = (obj, code = 202) => ({
+const encodeJsonRpc = reply => ({
   result: {
-    reply: {
-      status: {
-        code
-      },
-      entries: [
-        {
-          descriptor: {
-            dataFormat: 'application/json'
-          },
-          encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
-        }
-      ],
-      record: {}
-    }
+    reply
   }
 });
+const encodeMessageReply = (obj, code = 202) =>
+  encodeJsonRpc({
+    status: {
+      code
+    },
+    entries: [
+      {
+        descriptor: {
+          dataFormat: 'application/json'
+        },
+        encodedData: obj ? Encoder.stringToBase64Url(JSON.stringify(obj)) : undefined
+      }
+    ],
+    record: {}
+  });
+
 
 export class DwnHttpServer {
   #options: DwnHttpServerOptions;
@@ -47,28 +50,29 @@ export class DwnHttpServer {
         if (this.#options.dwnProcess?.preProcess)
           preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest);
 
-        console.log('preProcessResult', preProcessResult);
         let messageReply = preProcessResult?.reply;
 
         if (!messageReply) {
           // todo right now, assumed did in options
           if (!this.#options.dwnProcess?.disable && !preProcessResult?.halt) {
             console.log('Processing DWN Message...');
-            messageReply = await Dwn.processMessage(
+            const reply = await Dwn.processMessage(
               dwnRequest.target ?? this.#options.did,
               dwnRequest.message,
               dwnRequest.data);
-            console.log('Processed DWN Message', messageReply);
+            console.log('Processed DWN Message', reply);
+            res.statusCode = 200;
+            res.end(JSON.stringify(encodeJsonRpc(reply)));
           }
 
           // todo postProcess should also receive the result of the dwn.processMessage()
           if (this.#options.dwnProcess?.postProcess)
             await this.#options.dwnProcess.postProcess(dwnRequest);
+        } else {
+          res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
+          res.statusCode = 200;
+          res.end();
         }
-
-        res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)));
-        res.statusCode = 200;
-        res.end();
       }
     } catch (err) {
       console.error(err);

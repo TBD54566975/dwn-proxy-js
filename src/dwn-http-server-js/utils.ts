@@ -1,17 +1,18 @@
 import http from 'http';
 import { DwnRequest } from './types.js';
 
-export const readOctetStream = async (req: http.IncomingMessage): Promise<string | void> => {
-  let data = '';
+export const readOctetStream = async (req: http.IncomingMessage): Promise<Buffer> => {
+  const chunks: Buffer[] = [];
   await new Promise((resolve, reject) => {
-    req.on('data', chunk =>
-      data += chunk.toString('utf8')
-    );
-    req.on('end', () => resolve(data));
+    req.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(null));
     req.on('error', reject);
   });
-  return data;
+  return Buffer.concat(chunks);
 };
+
 
 export const parseDwnRequest = async (req: http.IncomingMessage): Promise<DwnRequest | void> => {
   const raw = req.headers['dwn-request'] as string | void;
@@ -19,6 +20,8 @@ export const parseDwnRequest = async (req: http.IncomingMessage): Promise<DwnReq
     const jsonRpc = JSON.parse(raw);
     const { target, message } = jsonRpc.params;
     const data = await readOctetStream(req);
+    console.log('kw dbg', data);
+    console.log('kw dbg', data.length);
 
     return {
       target,

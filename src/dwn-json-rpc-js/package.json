@@ -1,0 +1,95 @@
+{
+  "name": "@tbd54566975/dwn-json-rpc-js",
+  "version": "0.0.1",
+  "description": "DWN concepts represented with JSON-RPC",
+  "type": "module",
+  "main": "./dist/cjs/main.cjs",
+  "module": "./dist/esm/main.mjs",
+  "types": "./dist/types/main.d.ts",
+  "scripts": {
+    "build": "rimraf dist && node bundles.js && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json && tsc",
+    "lint": "eslint . --ext .js --max-warnings 0",
+    "lint:fix": "eslint . --ext .js --fix"
+  },
+  "homepage": "https://github.com/TBD54566975/dwn-json-rpc-js",
+  "bugs": "https://github.com/TBD54566975/dwn-json-rpc-js/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TBD54566975/dwn-json-rpc-js"
+  },
+  "license": "Apache-2.0",
+  "contributors": [
+    {
+      "name": "Kendall Weihe",
+      "url": "https://github.com/KendallWeihe"
+    },
+    {
+      "name": "Moe Jangda",
+      "url": "https://github.com/mistermoe"
+    }
+  ],
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/esm/main.mjs",
+      "require": "./dist/cjs/main.cjs",
+      "types": "./dist/types/main.d.ts"
+    }
+  },
+  "keywords": [
+    "decentralized",
+    "decentralized-applications",
+    "decentralized-identity",
+    "decentralized-web",
+    "DID",
+    "sdk",
+    "verifiable-credentials",
+    "web5",
+    "web5-sdk",
+    "json-rpc"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/bytes": "3.1.1",
+    "@types/chai": "4.3.4",
+    "@types/express": "4.17.17",
+    "@types/mocha": "10.0.1",
+    "@types/node": "18.11.18",
+    "@types/readable-stream": "2.3.15",
+    "@types/supertest": "2.0.12",
+    "@types/ws": "8.5.4",
+    "@typescript-eslint/eslint-plugin": "5.59.0",
+    "@typescript-eslint/parser": "5.59.0",
+    "chai": "4.3.6",
+    "chai-as-promised": "7.1.1",
+    "esbuild": "0.16.17",
+    "eslint": "8.33.0",
+    "eslint-plugin-import": "2.26.0",
+    "eslint-plugin-mocha": "10.1.0",
+    "mocha": "10.2.0",
+    "rimraf": "4.4.0",
+    "supertest": "6.3.3",
+    "typescript": "5.0.4"
+  },
+  "dependencies": {
+    "@tbd54566975/dwn-sdk-js": "0.0.33",
+    "bytes": "3.1.2",
+    "node-fetch": "3.3.1",
+    "cors": "2.8.5",
+    "express": "4.18.2",
+    "multiformats": "11.0.2",
+    "prom-client": "14.2.0",
+    "readable-stream": "4.3.0",
+    "response-time": "2.3.2",
+    "uuid": "9.0.0",
+    "ws": "8.12.0"
+  }
+}

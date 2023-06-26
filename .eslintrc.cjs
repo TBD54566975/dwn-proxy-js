@@ -27,7 +27,7 @@ module.exports = {
       'single',
       { 'allowTemplateLiterals': true }
     ],
-    'semi'                              : ['error', 'always'],
+    'semi'                              : ['error', 'never'],
     'indent'                            : ['error', 2, { 'SwitchCase': 1 }],
     'no-unused-vars'                    : 'off',
     'prefer-const'                      : 'off',
@@ -49,4 +49,4 @@ module.exports = {
     'arrow-spacing'                            : ['error', { 'before': true, 'after': true }],
     'space-before-blocks'                      : 'error'
   }
-};
+}

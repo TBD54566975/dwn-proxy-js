@@ -1,4 +1,4 @@
-import esbuild from 'esbuild';
+import esbuild from 'esbuild'
 
 // cjs bundle. external dependencies **not** bundled
 esbuild.buildSync({
@@ -10,7 +10,7 @@ esbuild.buildSync({
   entryPoints    : ['./src/main.ts'],
   outfile        : './dist/cjs/main.cjs',
   allowOverwrite : true,
-});
+})
 
 // esm bundle. external dependencies **not** bundled
 esbuild.buildSync({
@@ -22,4 +22,4 @@ esbuild.buildSync({
   entryPoints    : ['./src/main.ts'],
   outfile        : './dist/esm/main.mjs',
   allowOverwrite : true,
-});
+})

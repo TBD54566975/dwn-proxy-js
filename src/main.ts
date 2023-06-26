@@ -1,1 +1,1 @@
-export { DwnProxy } from './DwnProxy.js';
+export { DwnProxy } from './DwnProxy.js'

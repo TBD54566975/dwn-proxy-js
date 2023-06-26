@@ -37,41 +37,41 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { DwnProxy } from '@tbd54566975/dwn-proxy-js';
+import { DwnProxy } from '@tbd54566975/dwn-proxy-js'
 
-const proxy = new DwnProxy();
+const proxy = new DwnProxy()
 
 // your inbound handler for RecordsWrite's
 proxy.dwn.records.write(
   async (message, data) => {
-    const { descriptor: { protocol, schema }} = message;
+    const { descriptor: { protocol, schema }} = message
 
     if (protocol === 'TBDEX' && schema === 'RFQ') {
       const response = await fetch(`/your/api/rfq`, {
         method: 'POST',
         body: JSON.stringify(data)
-      });
-      return response.status === 200;
+      })
+      return response.status === 200
     }
 
-    return false; // dwn.processMessage() will not be called
+    return false // dwn.processMessage() will not be called
   }
-);
+)
 
 // your outbound API
 proxy.post('/api/quote', async req => {
   // you could do your own custom auth here
-  const { targetDid, quote } = await req.body.json();
+  const { targetDid, quote } = await req.body.json()
 
   // returning this will send the DWN Message to the targetDid
   return { 
     targetDid,
     data: quote
-  };
-});
+  }
+})
 
-const PORT = 3000;
-proxy.listen(PORT);
+const PORT = 3000
+proxy.listen(PORT)
 ```
 
 ## `App.dwn.records.query(handler)`
@@ -82,14 +82,14 @@ Method for handling inbound `RecordsQuery` DWN Messages.
 proxy.dwn.records.query(
   async message => { // handler function
     // space for custom middleware
-    await myCustomMiddleware(message);
+    await myCustomMiddleware(message)
 
     // you can override the default DWN 
     // records querying with your own records
     if (message.descriptor.something)
-      return myCustomRecord;
+      return myCustomRecord
   }
-);
+)
 ```
 
 `handler` - `(message: DwnMessage) => Promise<void | Record>`
@@ -103,19 +103,19 @@ Method for handling inbound `RecordsWrite` DWN Messages.
 ```typescript
 proxy.dwn.records.write(
   async (message, data) => {
-    const { descriptor: { protocol, schema }} = message;
+    const { descriptor: { protocol, schema }} = message
 
     if (protocol === 'TBDEX' && schema === 'RFQ') {
       const response = await fetch(`/your/api/rfq`, {
         method: 'POST',
         body: JSON.stringify(data)
-      });
-      return response.status === 200;
+      })
+      return response.status === 200
     }
 
-    return false; // dwn.processMessage() will not be called
+    return false // dwn.processMessage() will not be called
   }
-);
+)
 ```
 
 `handler` - `(message: DwnMessage, data: string | void) => Promise<boolean>`
@@ -128,20 +128,20 @@ Method for defining an outbound HTTP POST API call.
 
 ```typescript
 proxy.post('/api/something', async req => {
-  const { targetDid, something } = await req.body.json();
+  const { targetDid, something } = await req.body.json()
 
   // returning this will send the DWN Message to the targetDid
   return { 
     targetDid,
     data: something
-  };
-});
+  }
+})
 
 proxy.post('/api/something-else', async req => {
-  const somethingElse = await req.body.json();
-  await someCustomMiddleware(somethingElse);
+  const somethingElse = await req.body.json()
+  await someCustomMiddleware(somethingElse)
   // void return means no DWN Message is sent on
-});
+})
 ```
 
 `path` - HTTP path 

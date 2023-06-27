@@ -1,37 +1,6 @@
-
-type DwnMessage = {
-  things: string
-}
-
-type DwnHttpServerOptions = {
-  parser: (req: any) => DwnMessage
-  handler: () => Promise<void>
-  fallback: (req, res) => Promise<void>
-}
-class DwnHttpServer {
-  #options: DwnHttpServerOptions
-
-  constructor(options: DwnHttpServerOptions) {
-    this.#options = options
-  }
-}
-
-type DwnJsonRpcMessage = {
-  params: DwnMessage
-}
-class DwnJsonRpc {
-  static parse = (message: any): DwnMessage => {
-    return {
-      things: message
-    }
-  }
-
-  static create = (message: DwnMessage): DwnJsonRpcMessage => {
-    return {
-      params: message
-    }
-  }
-}
+import DwnHttpServer from './dwn-http-server.js'
+import type { DwnRequest, DwnResponse } from './dwn-http-server.js'
+import { parseRequest } from './dwn-json-rpc.js'
 
 export default class DwnProxy {
   #dwn: any
@@ -39,14 +8,19 @@ export default class DwnProxy {
 
   constructor() {
     this.#server = new DwnHttpServer({
-      parser   : DwnJsonRpc.parse,
+      parse    : parseRequest,
       handler  : this.#inbound,
       fallback : this.#outbound
     })
   }
 
-  #inbound = async () => {
-    console.log('todo')
+  #inbound = async (request: DwnRequest): Promise<DwnResponse> => {
+    console.log('todo', request)
+    return {
+      reply: {
+        todo: ''
+      }
+    }
   }
 
   #outbound = async () => {

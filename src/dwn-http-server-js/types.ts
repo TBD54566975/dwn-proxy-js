@@ -1,5 +1,5 @@
 import http from 'http'
-import { RecordsWriteMessage, RecordsQueryMessage, MessageReply } from '@tbd54566975/dwn-sdk-js'
+import { RecordsWriteMessage, RecordsQueryMessage } from '@tbd54566975/dwn-sdk-js'
 
 export interface IRequestListener {
   (req: http.IncomingMessage, res: http.ServerResponse): Promise<void>
@@ -17,7 +17,7 @@ export type DwnRequest = {
 export interface IPreProcess {
   (dwnRequest: DwnRequest): Promise<void | Partial<{
       halt: boolean
-      reply: MessageReply
+      reply: any
     }>>
 }
 

@@ -50,9 +50,9 @@ export class DwnHttpServer {
         if (this.#options.dwnProcess?.preProcess)
           preProcessResult = await this.#options.dwnProcess.preProcess(dwnRequest)
 
-        let messageReply = preProcessResult?.reply
+        let reply = preProcessResult?.reply
 
-        if (!messageReply) {
+        if (!reply) {
           // todo right now, assumed did in options
           if (!this.#options.dwnProcess?.disable && !preProcessResult?.halt) {
             console.log('Processing DWN Message...')
@@ -69,7 +69,7 @@ export class DwnHttpServer {
           if (this.#options.dwnProcess?.postProcess)
             await this.#options.dwnProcess.postProcess(dwnRequest)
         } else {
-          res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(messageReply)))
+          res.setHeader('dwn-response', JSON.stringify(encodeMessageReply(reply)))
           res.statusCode = 200
           res.end()
         }

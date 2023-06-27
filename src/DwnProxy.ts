@@ -32,9 +32,9 @@ export class DwnProxy {
   #inbound = async dwnRequest => {
     const interfaceMethod = `${dwnRequest.message.descriptor.interface}${dwnRequest.message.descriptor.method}`
     if (interfaceMethod === 'RecordsQuery') {
-      const record = await this.#recordsQuery(dwnRequest.message)
-      if (record) {
-        return {} // todo reply
+      const reply = await this.#recordsQuery(dwnRequest.message)
+      if (reply) {
+        return { reply }
       }
     } else if (interfaceMethod === 'RecordsWrite') {
       const halt = await this.#recordsWrite(dwnRequest.message, dwnRequest.data)

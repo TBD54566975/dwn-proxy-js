@@ -32,11 +32,10 @@ export class DwnHttpClient {
     const res =  await fetch(endpoint, fetchOpts)
 
     let dwnResponse: DwnResponse
-    if (res.headers.has('dwn-response')) {
+    if (res.headers.has('dwn-response'))
       dwnResponse = parseResponse(JSON.parse(res.headers.get('dwn-response')))
-    } else {
+    else
       dwnResponse = parseResponse(JSON.parse(await res.text()))
-    }
 
     return dwnResponse
   }

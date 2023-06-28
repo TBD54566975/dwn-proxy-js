@@ -50,7 +50,7 @@ export class DwnProxy {
     console.log('todo', map, func)
   }
 
-  listen = async (port: number) => {
+  async listen(port: number) {
     this.dwn = await Dwn.create()
 
     this.#server = new DwnHttpServer({

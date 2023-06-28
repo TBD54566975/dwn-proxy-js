@@ -1,3 +1,4 @@
+import { DwnHttpClient } from './dwn-http-client.js'
 import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
@@ -17,6 +18,7 @@ export type DwnProxyOptions = Partial<{
 
 export class DwnProxy {
   server: DwnHttpServer
+  client: DwnHttpClient
   options: DwnProxyOptions
   dwn: Dwn
   handlers: Array<IInbound> = []
@@ -39,7 +41,6 @@ export class DwnProxy {
     throw new Error('Unable to find middleware')
   }
 
-
   async listen(port: number) {
     this.dwn = await Dwn.create()
 
@@ -51,5 +52,7 @@ export class DwnProxy {
     this.server.listen(port, () => {
       console.log(`server listening on port ${port}`)
     })
+
+    this.client = new DwnHttpClient()
   }
 }

@@ -1,3 +1,4 @@
+export * from './dwn-http-client.js'
 export * from './dwn-http-server.js'
 export * from './dwn-json-rpc.js'
 export * from './dwn-proxy.js'

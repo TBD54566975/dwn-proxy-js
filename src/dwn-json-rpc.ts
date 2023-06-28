@@ -1,4 +1,4 @@
-import type { DwnRequest, DwnResponse } from './dwn-types.js'
+import type { DwnMessage, DwnRequest, DwnResponse } from './dwn-types.js'
 
 export type JsonRpcId = string | number | null
 export type JsonRpcParams = DwnRequest // todo
@@ -28,6 +28,18 @@ export const createResponse = (res: DwnResponse): JsonRpcResponse => {
     id      : '',
     result  : {
       reply: res.reply
+    }
+  }
+}
+
+export const createRequest = (target: string, message: DwnMessage): JsonRpcRequest => {
+  return {
+    jsonrpc : '2.0',
+    id      : '', // TODO
+    method  : 'dwn.processMessage',
+    params  : {
+      target,
+      message
     }
   }
 }

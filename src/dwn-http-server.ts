@@ -16,7 +16,7 @@ type Options = {
   // [kw] can parameterize the json-rpc parsing
 }
 
-export default class DwnHttpServer {
+export class DwnHttpServer {
   #options: Options
   #api: Express
 

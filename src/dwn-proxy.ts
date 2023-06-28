@@ -1,4 +1,4 @@
-import DwnHttpServer from './dwn-http-server.js'
+import { DwnHttpServer } from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 
@@ -18,7 +18,7 @@ export type DwnProxyOptions = Partial<{
   didState: DidStateWithSignatureInput
 }>
 
-export default class DwnProxy {
+export class DwnProxy {
   #server: DwnHttpServer
 
   options: DwnProxyOptions

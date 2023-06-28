@@ -1,26 +1,18 @@
 import express from 'express'
 import type { Express, Request, Response } from 'express'
 import cors from 'cors'
-import type { Readable } from 'node:stream'
+import { DwnMessage, DwnRequest, DwnResponse } from './dwn-types.js'
+import { Dwn } from '@tbd54566975/dwn-sdk-js'
 
-export type DwnMessage = {
-  todo: string
+export interface IHandler {
+  (req: DwnRequest): Promise<DwnResponse | void>
 }
-export type DwnRequest = {
-  message: DwnMessage,
-  data?: Readable
-}
-export type DwnMessageReply = {
-  todo: string
-}
-export type DwnResponse = {
-  reply: DwnMessageReply
-  data?: Readable
-}
+
 type Options = {
+  dwn: Dwn
   parse: (req: any) => DwnMessage
-  handler: (req: DwnRequest) => Promise<DwnResponse>
-  fallback: (req: Request, res: Response) => Promise<void>
+  handler?: (req: DwnRequest) => Promise<DwnResponse | void>
+  fallback?: (req: Request, res: Response) => Promise<void>
 }
 
 export default class DwnHttpServer {
@@ -57,8 +49,12 @@ export default class DwnHttpServer {
           return
         }
 
-        const dwnResponse = await this.#options.handler(dwnRequest)
-        if (dwnResponse.data) {
+        const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
+
+        if (!dwnResponse) {
+          const reply = await this.#options.dwn.processMessage('todo', dwnRequest.message, dwnRequest.data as any)
+          res.json(reply)
+        } else if (dwnResponse.data) {
           res.setHeader('content-type', 'application/octet-stream')
           res.setHeader('dwn-response', JSON.stringify(dwnResponse.reply))
           dwnResponse.data.pipe(res)
@@ -70,10 +66,9 @@ export default class DwnHttpServer {
       }
     })
 
-    this.#api.use(this.#options.fallback)
+    if (this.#options.fallback)
+      this.#api.use(this.#options.fallback)
   }
 
-  listen(port: number, callback?: () => void) {
-    return this.#api.listen(port, callback)
-  }
+  listen = (port: number, callback?: () => void) => this.#api.listen(port, callback)
 }

@@ -1,4 +1,4 @@
-import type { DwnMessage, DwnMessageReply } from './dwn-http-server.js'
+import type { DwnMessage, DwnMessageReply } from './dwn-types.js'
 
 export type JsonRpcId = string | number | null
 export type JsonRpcParams = DwnMessage // todo
@@ -18,11 +18,7 @@ export interface JsonRpcResponse {
   error?: undefined
 }
 
-export interface JsonRpcParse {
-  (req: JsonRpcRequest): DwnMessage
-}
-
-export const parseRequest: JsonRpcParse = req => {
+export const parseRequest = (req: JsonRpcRequest): DwnMessage => {
   console.log('todo', req)
   return {
     todo: ''

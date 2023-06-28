@@ -1,4 +1,4 @@
-import { DwnInterfaceName, DwnMethodName, RecordsQuery, RecordsQueryMessage, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
+import { DwnInterfaceName, DwnMethodName, RecordsQueryMessage, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 import DwnProxy, { DwnProxyOptions } from './dwn-proxy.js'
 import { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Readable } from 'node:stream'
@@ -28,15 +28,7 @@ class TbdPfiDwnProxy extends DwnProxy {
   }
 
   offering = async (request: DwnRequest): Promise<DwnResponse | void> => {
-    console.log('Handling offering', request)
-    /**
-     * - fetch from backend
-     * - write record (publish: true)
-     * - return record
-     */
-    // const res = await fetch('backend/offering')
-    // const offering = await res.json()
-
+    // fetch from backend
     const offering = {
       description            : 'test offering',
       pair                   : 'USD_BTC',
@@ -47,25 +39,24 @@ class TbdPfiDwnProxy extends DwnProxy {
       payinInstruments       : [],
       payoutInstruments      : []
     }
+    // const res = await fetch('backend/offering')
+    // const offering = await res.json()
 
-    const dataStream = Readable.from(JSON.stringify(offering))
+    // write the record w/ published=true
+    await this.dwn.processMessage(
+      this.options.didState.id,
+      (await RecordsWrite.create({
+        published                   : true,
+        data                        : Buffer.from(JSON.stringify(offering), 'utf-8'),
+        dataFormat                  : 'application/json',
+        authorizationSignatureInput : this.options.didState.signatureInput,
+        schema                      : 'https://tbd.website/resources/tbdex/Offering'
+      })).message,
+      Readable.from(JSON.stringify(offering)) as IsomorphicReadable)
 
-    const record = await RecordsWrite.create({
-      published                   : true,
-      data                        : Buffer.from(JSON.stringify(offering), 'utf-8'),
-      dataFormat                  : 'application/json',
-      authorizationSignatureInput : this.options.didState.signatureInput,
-      schema                      : 'https://tbd.website/resources/tbdex/Offering'
-    })
-
-    await this.dwn.processMessage(this.options.didState.id, record.message, dataStream as IsomorphicReadable)
-
+    // query & reply
     const reply = await this.dwn.processMessage(this.options.didState.id, request.message)
-    console.log(reply)
-
-    return {
-      reply
-    }
+    return { reply }
   }
 
   rfq = async () => {

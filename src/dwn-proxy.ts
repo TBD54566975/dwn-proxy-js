@@ -35,6 +35,11 @@ export class DwnProxy {
     for (const handler of this.inboundHandlers) {
       const func = handler(request)
       if (func) {
+        if (request.data) { // go ahead and read the data into an object
+          let chunks = ''
+          for await (const chunk of request.data) chunks += chunk
+          request.data = JSON.parse(chunks)
+        }
         return await func(request)
       }
     }

@@ -6,7 +6,7 @@ export type DwnMessage = RecordsQueryMessage | RecordsWriteMessage
 export type DwnRequest = {
   target?: string,
   message: DwnMessage,
-  data?: Readable
+  data?: Readable | any
 }
 
 export type DwnResponse = {

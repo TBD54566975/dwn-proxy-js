@@ -23,7 +23,8 @@ export default class DwnProxy {
   options: DwnProxyOptions
   dwn: Dwn
   #server: DwnHttpServer
-  #inbounds: Array<IInbound> = []
+
+  inboundHandlers: Array<IInbound> = []
 
   constructor(options: DwnProxyOptions) {
     this.options = options
@@ -31,10 +32,10 @@ export default class DwnProxy {
 
   inbound = async (request: DwnRequest): Promise<DwnResponse | void> => {
     // [kw] could use a has map of sorts instead of iterating every time
-    for (const match of this.#inbounds) {
-      const middleware = match(request)
-      if (middleware) {
-        return await middleware(request)
+    for (const handler of this.inboundHandlers) {
+      const func = handler(request)
+      if (func) {
+        return await func(request)
       }
     }
 
@@ -44,8 +45,6 @@ export default class DwnProxy {
   outbound = async () => {
     console.log('todo')
   }
-
-  addHandler = (handler: IInbound) => this.#inbounds.push(handler)
 
   mapOutbound = (map, func) => {
     console.log('todo', map, func)

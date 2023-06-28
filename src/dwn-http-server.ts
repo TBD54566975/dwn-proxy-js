@@ -52,7 +52,7 @@ export default class DwnHttpServer {
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
 
         if (!dwnResponse) {
-          const reply = await this.#options.dwn.processMessage('todo', dwnRequest.message, dwnRequest.data as any)
+          const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.data as any)
           res.json(reply)
         } else if (dwnResponse.data) {
           res.setHeader('content-type', 'application/octet-stream')

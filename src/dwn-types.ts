@@ -4,6 +4,7 @@ import type { MessageReply, RecordsQueryMessage, RecordsWriteMessage } from '@tb
 export type DwnMessage = RecordsQueryMessage | RecordsWriteMessage
 
 export type DwnRequest = {
+  target?: string,
   message: DwnMessage,
   data?: Readable
 }

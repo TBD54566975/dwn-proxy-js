@@ -21,8 +21,8 @@ class TbdPfiDwnProxy extends DwnProxy {
   constructor(options: DwnProxyOptions) {
     super(options)
 
-    super.addHandler(req => isOffering(req) ? this.offering : undefined)
-    super.addHandler(req => isRfq(req) ? this.rfq : undefined)
+    super.inboundHandlers.push(req => isOffering(req) ? this.offering : undefined)
+    super.inboundHandlers.push(req => isRfq(req) ? this.rfq : undefined)
 
     super.mapOutbound(() => undefined, this.quote)
     super.mapOutbound(() => undefined, this.orderStatus)
@@ -43,15 +43,11 @@ class TbdPfiDwnProxy extends DwnProxy {
       dataFormat                  : 'application/json',
       authorizationSignatureInput : super.options.didState.signatureInput,
     })
-    super.dwn.processMessage('this did', record)
+
+    const reply = await super.dwn.processMessage(this.options.didState.id, record)
+
     return {
-      reply: {
-        status: {
-          code   : 200,
-          detail : 'Success'
-        }
-      },
-      data: offering
+      reply
     }
   }
 

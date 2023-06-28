@@ -1,4 +1,4 @@
-import { DwnInterfaceName, DwnMethodName, RecordsQueryMessage, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
+import { DwnInterfaceName, DwnMethodName, RecordsQuery, RecordsQueryMessage, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 import DwnProxy, { DwnProxyOptions } from './dwn-proxy.js'
 import { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Readable } from 'node:stream'
@@ -57,9 +57,10 @@ class TbdPfiDwnProxy extends DwnProxy {
       authorizationSignatureInput : this.options.didState.signatureInput,
       schema                      : 'https://tbd.website/resources/tbdex/Offering'
     })
-    console.log(record)
 
-    const reply = await this.dwn.processMessage(this.options.didState.id, record.message, dataStream as IsomorphicReadable)
+    await this.dwn.processMessage(this.options.didState.id, record.message, dataStream as IsomorphicReadable)
+
+    const reply = await this.dwn.processMessage(this.options.didState.id, request.message)
     console.log(reply)
 
     return {

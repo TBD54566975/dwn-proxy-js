@@ -1,6 +1,5 @@
 import DwnHttpServer from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
-import { parseRequest } from './dwn-json-rpc.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 
 interface IInboundHandler {
@@ -56,7 +55,6 @@ export default class DwnProxy {
 
     this.#server = new DwnHttpServer({
       dwn      : this.dwn,
-      parse    : parseRequest,
       handler  : this.#inbound,
       fallback : this.#outbound
     })

@@ -3,6 +3,7 @@ import type { Express, Request, Response } from 'express'
 import cors from 'cors'
 import { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
+import { parseRequest, createResponse } from './dwn-json-rpc.js'
 
 export interface IHandler {
   (req: DwnRequest): Promise<DwnResponse | void>
@@ -10,9 +11,9 @@ export interface IHandler {
 
 type Options = {
   dwn: Dwn
-  parse: (req: any) => DwnRequest
   handler?: (req: DwnRequest) => Promise<DwnResponse | void>
   fallback?: (req: Request, res: Response) => Promise<void>
+  // [kw] can parameterize the json-rpc parsing
 }
 
 export default class DwnHttpServer {
@@ -36,7 +37,7 @@ export default class DwnHttpServer {
       try {
         let dwnRequest: DwnRequest
         try {
-          dwnRequest = this.#options.parse(JSON.parse(req.headers['dwn-request'] as string))
+          dwnRequest = parseRequest(JSON.parse(req.headers['dwn-request'] as string))
           if (!dwnRequest.data) {
             const contentLength = req.headers['content-length']
             const transferEncoding = req.headers['transfer-encoding']
@@ -55,10 +56,10 @@ export default class DwnHttpServer {
           res.json(reply)
         } else if (dwnResponse.data) {
           res.setHeader('content-type', 'application/octet-stream')
-          res.setHeader('dwn-response', JSON.stringify(dwnResponse.reply))
+          res.setHeader('dwn-response', JSON.stringify(createResponse(dwnResponse)))
           dwnResponse.data.pipe(res)
         } else {
-          res.json(dwnResponse.reply)
+          res.json(createResponse(dwnResponse))
         }
       } catch (err) {
         // todo handle catch-all error (500)

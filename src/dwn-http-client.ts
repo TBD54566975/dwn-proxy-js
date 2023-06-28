@@ -1,6 +1,7 @@
 import { RecordsWriteMessage } from '@tbd54566975/dwn-sdk-js'
 import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids'
-import { createRequest } from './dwn-json-rpc.js'
+import { createRequest, parseResponse } from './dwn-json-rpc.js'
+import { DwnResponse } from './dwn-types.js'
 
 export class DwnHttpClient {
   // TODO did resolver cache member variable
@@ -14,8 +15,9 @@ export class DwnHttpClient {
     return (service.serviceEndpoint as DwnServiceEndpoint).nodes[0]
   }
 
-  send = async (target: string, message: RecordsWriteMessage, data?: string): Promise<void> => {
+  send = async (target: string, message: RecordsWriteMessage, data?: string): Promise<DwnResponse> => {
     const endpoint = await this.#resolveEndpoint(target)
+
     const fetchOpts = {
       method  : 'POST',
       headers : {
@@ -27,7 +29,15 @@ export class DwnHttpClient {
       fetchOpts['body'] = data
     }
 
-    const resp = await fetch(endpoint, fetchOpts)
-    console.log('kw dbg', resp.status)
+    const res =  await fetch(endpoint, fetchOpts)
+
+    let dwnResponse: DwnResponse
+    if (res.headers.has('dwn-response')) {
+      dwnResponse = parseResponse(JSON.parse(res.headers.get('dwn-response')))
+    } else {
+      dwnResponse = parseResponse(JSON.parse(await res.text()))
+    }
+
+    return dwnResponse
   }
 }

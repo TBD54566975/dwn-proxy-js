@@ -22,16 +22,6 @@ export const parseRequest = (req: JsonRpcRequest): DwnRequest => {
   return req.params
 }
 
-export const createResponse = (res: DwnResponse): JsonRpcResponse => {
-  return {
-    jsonrpc : '2.0',
-    id      : '',
-    result  : {
-      reply: res.reply
-    }
-  }
-}
-
 export const createRequest = (target: string, message: DwnMessage): JsonRpcRequest => {
   return {
     jsonrpc : '2.0',
@@ -40,6 +30,20 @@ export const createRequest = (target: string, message: DwnMessage): JsonRpcReque
     params  : {
       target,
       message
+    }
+  }
+}
+
+export const parseResponse = (res: JsonRpcResponse): DwnResponse => {
+  return res.result
+}
+
+export const createResponse = (res: DwnResponse): JsonRpcResponse => {
+  return {
+    jsonrpc : '2.0',
+    id      : '',
+    result  : {
+      reply: res.reply
     }
   }
 }

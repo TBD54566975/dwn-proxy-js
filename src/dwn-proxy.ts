@@ -1,12 +1,9 @@
-import { DwnHttpServer } from './dwn-http-server.js'
+import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 
-interface IInboundHandler {
-  (dwnRequest: DwnRequest): Promise<void | DwnResponse>
-}
 interface IInbound {
-  (dwnRequest: DwnRequest): IInboundHandler | void
+  (dwnRequest: DwnRequest): ((dwnRequest: DwnRequest) => Promise<void | DwnResponse>) | void
 }
 
 type DidStateWithSignatureInput = {
@@ -19,27 +16,22 @@ export type DwnProxyOptions = Partial<{
 }>
 
 export class DwnProxy {
-  #server: DwnHttpServer
-
+  server: DwnHttpServer
   options: DwnProxyOptions
   dwn: Dwn
-  inboundHandlers: Array<IInbound> = []
+  handlers: Array<IInbound> = []
 
   constructor(options: DwnProxyOptions) {
     this.options = options
   }
 
   #inbound = async (request: DwnRequest): Promise<DwnResponse | void> => {
-    // console.log('New inbound', request)
     // [kw] could use a has map of sorts instead of iterating every time
-    for (const handler of this.inboundHandlers) {
+    for (const handler of this.handlers) {
       const func = handler(request)
       if (func) {
-        if (request.data) { // go ahead and read the data into an object
-          let chunks = ''
-          for await (const chunk of request.data) chunks += chunk
-          request.data = JSON.parse(chunks)
-        }
+        if (request.data) // go ahead and read the data into an object
+          request.data = readReq(request.data)
         return await func(request)
       }
     }
@@ -47,24 +39,16 @@ export class DwnProxy {
     throw new Error('Unable to find middleware')
   }
 
-  #outbound = async () => {
-    console.log('todo')
-  }
-
-  mapOutbound = (map, func) => {
-    console.log('todo', map, func)
-  }
 
   async listen(port: number) {
     this.dwn = await Dwn.create()
 
-    this.#server = new DwnHttpServer({
-      dwn      : this.dwn,
-      handler  : this.#inbound,
-      fallback : this.#outbound
+    this.server = new DwnHttpServer({
+      dwn     : this.dwn,
+      handler : this.#inbound
     })
 
-    this.#server.listen(port, () => {
+    this.server.listen(port, () => {
       console.log(`server listening on port ${port}`)
     })
   }

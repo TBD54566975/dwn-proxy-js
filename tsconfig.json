@@ -6,8 +6,8 @@
       "ES6"
     ],
     "allowJs": true,
-    "target": "es6",
-    "module": "ESNext", // Required for enabling JavaScript import assertion support
+    "target": "es2017",
+    "module": "esnext", // Required for enabling JavaScript import assertion support
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,

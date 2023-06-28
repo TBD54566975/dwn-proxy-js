@@ -31,6 +31,7 @@ Handlers for inbound DWN Messages must be defined in order for the underlying DW
 
 # Usage
 
+⚠️ OUT OF DATE! ⚠️
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js

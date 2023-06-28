@@ -33,7 +33,7 @@ export class DwnProxy {
       const func = handler(request)
       if (func) {
         if (request.data) // go ahead and read the data into an object
-          request.data = readReq(request.data)
+          request.data = await readReq(request.data)
         return await func(request)
       }
     }

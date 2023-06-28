@@ -1,7 +1,7 @@
 import express from 'express'
 import type { Express, Request, Response } from 'express'
 import cors from 'cors'
-import { DwnMessage, DwnRequest, DwnResponse } from './dwn-types.js'
+import { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
 
 export interface IHandler {
@@ -10,7 +10,7 @@ export interface IHandler {
 
 type Options = {
   dwn: Dwn
-  parse: (req: any) => DwnMessage
+  parse: (req: any) => DwnRequest
   handler?: (req: DwnRequest) => Promise<DwnResponse | void>
   fallback?: (req: Request, res: Response) => Promise<void>
 }
@@ -36,13 +36,12 @@ export default class DwnHttpServer {
       try {
         let dwnRequest: DwnRequest
         try {
-          const contentLength = req.headers['content-length']
-          const transferEncoding = req.headers['transfer-encoding']
-          const requestDataStream = (parseInt(contentLength) > 0 || transferEncoding !== undefined) ? req : undefined
-
-          dwnRequest = {
-            message : this.#options.parse(JSON.parse(req.headers['dwn-request'] as string)),
-            data    : requestDataStream
+          dwnRequest = this.#options.parse(JSON.parse(req.headers['dwn-request'] as string))
+          if (!dwnRequest.data) {
+            const contentLength = req.headers['content-length']
+            const transferEncoding = req.headers['transfer-encoding']
+            const requestDataStream = (parseInt(contentLength) > 0 || transferEncoding !== undefined) ? req : undefined
+            dwnRequest.data = requestDataStream
           }
         } catch (err) {
           // todo handle parse error (400)

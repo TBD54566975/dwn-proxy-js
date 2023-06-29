@@ -78,7 +78,7 @@ jobs:
         if: env.IS_LATEST == 'true'
         run: npm run build
 
-      - name: Publish @tbd54566975/tbdex@${{ env.REPO_VERSION }}
+      - name: Publish @tbd54566975/dwn-proxy-js@${{ env.REPO_VERSION }}
         if: env.IS_LATEST == 'true'
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

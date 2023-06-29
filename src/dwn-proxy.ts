@@ -3,16 +3,13 @@ import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 
-interface IHandler {
-  (dwnRequest: DwnRequest): Promise<void | DwnResponse>
-}
 interface IMatch {
   (req: DwnRequest): boolean
 }
-interface IAddHandler {
-  (match: IMatch, handler: IHandler): void
+interface IHandler {
+  (dwnRequest: DwnRequest): Promise<void | DwnResponse>
 }
-interface IHandlerMatch {
+interface IMatchHandler {
   match: IMatch
   handler: IHandler
 }
@@ -31,7 +28,7 @@ export class DwnProxy {
   client: DwnHttpClient
   options: DwnProxyOptions
   dwn: Dwn
-  #handlers: Array<IHandlerMatch> = []
+  #handlers: Array<IMatchHandler> = []
 
   constructor(options: DwnProxyOptions) {
     this.options = options
@@ -51,7 +48,7 @@ export class DwnProxy {
     throw new Error('Unable to find middleware')
   }
 
-  addHandler: IAddHandler = (match, handler) => this.#handlers.push({ match, handler })
+  addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
 
   async listen(port: number) {
     this.dwn = await Dwn.create()

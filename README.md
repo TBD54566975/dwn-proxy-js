@@ -124,9 +124,9 @@ proxy.addHandler(
 )
 ```
 
-- `lambda`: (required) `(req: DwnRequest) => boolean`
+- (required) `lambda`: `(req: DwnRequest) => boolean`
   - if evaluated to `true` then use `handler` for the given message
-- `handler`: (required) `(dwnRequest: DwnRequest) => Promise<void | DwnResponse>`
+- (required) `handler`: `(dwnRequest: DwnRequest) => Promise<void | DwnResponse>`
   - if return type is `void` then the underlying `DwnHttpServer` will call `dwn.processMessage()` whereafter it will respond to the client w/ the given result
   - Else, you can explicitly specify your `DwnResponse` which will *not* result in a subsequent call to `dwn.processMessage()`
 

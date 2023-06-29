@@ -8,9 +8,10 @@ Making DWN integrations with traditional backend services easy.
 
 * [Design](#design)
 * [Usage](#usage)
-  * [`App.dwn.records.query(handler)`](#appdwnrecordsqueryhandler)
-  * [`App.dwn.records.write(handler)`](#appdwnrecordswritehandler)
-  * [`App.post(path, handler)`](#apppostpath-handler)
+  * [`new DwnProxy(options)`](#new-dwnproxyoptions)
+  * [`DwnProxy.listen(port)`](#dwnproxylistenport)
+  * [`DwnProxy.addHandler(lambda, handler)`](#dwnproxyaddhandlerlambda-handler)
+  * [`DwnProxy.server.api`](#dwnproxyserverapi)
 * [Project Resources](#project-resources)
 
 ![Intro diagram](./images/intro.png)
@@ -19,139 +20,128 @@ Making DWN integrations with traditional backend services easy.
 
 At it's lightest, this package can act as a network router for DWN Message's. At it's heaviest, this package can be used to selectively abstract DWN-concepts from your web services. You have optionality as to the degree to which you differentiate across the two network interfaces.
 
-Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent [interface](https://github.com/TBD54566975/web5-js/tree/main/packages/web5-agent)). Also like [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package uses the [`dwn-sdk-js`](https://github.com/TBD54566975/dwn-sdk-js) to implement a fully-featured DWN. However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
-
-Handlers will **always** be called *prior-to* the underlying DWN Processing (that is, `dwn.processMessage()`), and based on the `return` of the handler, then DWN Processing may be avoided altogether.
-
-Handlers for inbound DWN Messages must be defined in order for the underlying DWN to accept and process messages. If a handler for the given `{Interface}{Method}` is not defined (ex: `RecordsWrite`) then all messages for that given `{Interface}{Method}` will be rejected.
-
-![Inbound](images/inbound.png)
-
-![Outbound](images/outbound.png)
+Like the [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package is intended to be used server-side, wherein DWN Messages are interfaced with via JSON-RPC (compatible with [`web5-js`](https://github.com/TBD54566975/web5-js)'s Agent [interface](https://github.com/TBD54566975/web5-js/tree/main/packages/web5-agent)). However, unlike [`dwn-server`](https://github.com/TBD54566975/dwn-server), this package offers a programmatic interface for handling DWN Messages, both inbound and outbound, with the design intent of integrating with traditional backend services.
 
 # Usage
-
-⚠️ OUT OF DATE! ⚠️
 
 ```cli
 npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { DwnProxy } from '@tbd54566975/dwn-proxy-js'
+import { DwnProxy, DwnRequest, Request, Response, readReq } from '@tbd54566975/dwn-proxy-js'
 
-const proxy = new DwnProxy()
+const isMessageA = (dwnRequest: DwnRequest): boolean =>
+  dwnRequest.message.descriptor.interface === 'Records' &&
+  dwnRequest.message.descriptor.method === 'Query' &&
+  (dwnRequest.message as RecordsQueryMessage).descriptor.filter.schema === 'https://tbd.website/resources/message-a'
 
-// your inbound handler for RecordsWrite's
-proxy.dwn.records.write(
-  async (message, data) => {
-    const { descriptor: { protocol, schema }} = message
+const isMessageB = (dwnRequest: DwnRequest): boolean =>
+  dwnRequest.message.descriptor.interface === 'Records' &&
+  dwnRequest.message.descriptor.method === 'Write' &&
+  dwnRequest.message.descriptor.schema === 'https://tbd.website/resources/message-b'
 
-    if (protocol === 'TBDEX' && schema === 'RFQ') {
-      const response = await fetch(`/your/api/rfq`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      })
-      return response.status === 200
-    }
-
-    return false // dwn.processMessage() will not be called
+class MyProxy extends DwnProxy {
+  async handlerA(request: DwnRequest) {
+    // do whatever you want
+    // ...
+    // example: maybe process the message using the DWN instance
+    const { id } = this.options.didState
+    await this.dwn.processMessage(id, request.message, request.data)
   }
-)
 
-// your outbound API
-proxy.post('/api/quote', async req => {
-  // you could do your own custom auth here
-  const { targetDid, quote } = await req.body.json()
-
-  // returning this will send the DWN Message to the targetDid
-  return { 
-    targetDid,
-    data: quote
+  async handlerB(request: DwnRequest) {
+    // do whatever you want
+    // ...
+    // example: maybe forward the request onto your backend
+    await fetch('/your-backend', {
+      method: 'POST',
+      body: JSON.stringify(request)
+    })
   }
-})
 
-const PORT = 3000
-proxy.listen(PORT)
+  async apiC(req: Request, res: Response) {
+    const body = await readReq<any>(req)
+
+    // do whatever you want
+    // ...
+    // maybe send the message onto a user
+    await this.client.send(body.to, body.dwnRecordsWrite, JSON.stringify(body.data))
+  }
+
+  async apiD(req: Request, res: Response) {
+    const body = await readReq<any>(req)
+
+    // do whatever you want
+    // ...
+  }
+
+  // overriding the default DwnProxy.listen()
+  async listen(port: number) {
+    await super.listen(port)
+
+    // wire-up your dwn handlers
+    this.addHandler(isMessageA, this.handlerA)
+    this.addHandler(isMessageB, this.handlerB)
+
+    // wire-up your server handlers
+    this.server.api.post('/handler-c', this.outboundHandlerC)
+    this.server.api.post('/handler-d', this.apiD)
+  }
+}
+
+const PORT = 8080
+const proxy = new MyProxy()
+await proxy.listen(PORT)
 ```
 
-## `App.dwn.records.query(handler)`
+## `new DwnProxy(options)`
 
-Method for handling inbound `RecordsQuery` DWN Messages.
+- `options`:
+  - (optional) `serviceEndpoint`
+  - (optional) `didState`
+
+## `DwnProxy.listen(port)`
+
+Start a JSON-RPC server, hosting an HTTP server at the given `port`.
+
+- (required) `port`: number
+
+## `DwnProxy.addHandler(lambda, handler)`
+
+Add a handler for inbound DWN Messages.
 
 ```typescript
-proxy.dwn.records.query(
-  async message => { // handler function
-    // space for custom middleware
-    await myCustomMiddleware(message)
-
-    // you can override the default DWN 
-    // records querying with your own records
-    if (message.descriptor.something)
-      return myCustomRecord
+const isMyMessage = req => 
+  req.message.descriptor.interface === 'Records' &&
+  req.message.descriptor.method === 'Write' &&
+  req.message.descriptor.schema === 'https://your-schema/file.json'
+proxy.addHandler(
+  isMyMessage,
+  async req => {
+    // do whatever you would like with the given DwnRequest
   }
 )
 ```
 
-`handler` - `(message: DwnMessage) => Promise<void | Record>`
-  - If the return type is `void` then the underlying DWN will read from its own record store
-  - Else if the return type is `Record` then the given record will be immediately returned to the requestor
+- `lambda`: (required) `(req: DwnRequest) => boolean`
+  - if evaluated to `true` then use `handler` for the given message
+- `handler`: (required) `(dwnRequest: DwnRequest) => Promise<void | DwnResponse>`
+  - if return type is `void` then the underlying `DwnHttpServer` will call `dwn.processMessage()` whereafter it will respond to the client w/ the given result
+  - Else, you can explicitly specify your `DwnResponse` which will *not* result in a subsequent call to `dwn.processMessage()`
 
-## `App.dwn.records.write(handler)`
+## `DwnProxy.server.api`
 
-Method for handling inbound `RecordsWrite` DWN Messages.
-
-```typescript
-proxy.dwn.records.write(
-  async (message, data) => {
-    const { descriptor: { protocol, schema }} = message
-
-    if (protocol === 'TBDEX' && schema === 'RFQ') {
-      const response = await fetch(`/your/api/rfq`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-      })
-      return response.status === 200
-    }
-
-    return false // dwn.processMessage() will not be called
-  }
-)
-```
-
-`handler` - `(message: DwnMessage, data: string | void) => Promise<boolean>`
-  - If the return is `true` then `dwn.processMessage()` will be called
-  - Else if the return is `false` then `dwn.processMessage()` will **not** be called and will immediately respond to the requestor with an error code
-
-## `App.post(path, handler)`
-
-Method for defining an outbound HTTP POST API call.
+Directly interface with the [Express](https://expressjs.com/) server
 
 ```typescript
-proxy.post('/api/something', async req => {
-  const { targetDid, something } = await req.body.json()
+proxy.server.api.post('/some-outbound-api', async (req, res) => {
+  // do whatever you would like 
 
-  // returning this will send the DWN Message to the targetDid
-  return { 
-    targetDid,
-    data: something
-  }
-})
-
-proxy.post('/api/something-else', async req => {
-  const somethingElse = await req.body.json()
-  await someCustomMiddleware(somethingElse)
-  // void return means no DWN Message is sent on
+  res.status(200)
+  res.end()
 })
 ```
-
-`path` - HTTP path 
-
-`handler` - `(req) => Promise<void | Record>`
-  - If return type is `void` then no DWN processing occurs neither is a subsequent DWN Message sent on
-  - Else if the return type is `Record` then
-    - The record is written to ones own DWN
-    - The record is sent onwards (as a message) to the `targetDid`
 
 # Project Resources
 

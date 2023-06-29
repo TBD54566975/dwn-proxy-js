@@ -21,7 +21,7 @@ export class DwnProxy {
   client: DwnHttpClient
   options: DwnProxyOptions
   dwn: Dwn
-  handlers: Array<IInbound> = []
+  #handlers: Array<IInbound> = []
 
   constructor(options: DwnProxyOptions) {
     this.options = options
@@ -29,7 +29,7 @@ export class DwnProxy {
 
   #inbound = async (request: DwnRequest): Promise<DwnResponse | void> => {
     // [kw] could use a has map of sorts instead of iterating every time
-    for (const handler of this.handlers) {
+    for (const handler of this.#handlers) {
       const func = handler(request)
       if (func) {
         if (request.data) // go ahead and read the data into an object
@@ -40,6 +40,9 @@ export class DwnProxy {
 
     throw new Error('Unable to find middleware')
   }
+
+  addHandler = (lambda: (req: DwnRequest) => boolean, handler: ((dwnRequest: DwnRequest) => Promise<void | DwnResponse>)) =>
+    this.#handlers.push(req => lambda(req) ? handler : undefined)
 
   async listen(port: number) {
     this.dwn = await Dwn.create()

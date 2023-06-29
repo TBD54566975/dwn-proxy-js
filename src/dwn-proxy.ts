@@ -3,8 +3,18 @@ import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import type { DwnRequest, DwnResponse } from './dwn-types.js'
 import { Dwn, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 
-interface IInbound {
-  (dwnRequest: DwnRequest): ((dwnRequest: DwnRequest) => Promise<void | DwnResponse>) | void
+interface IHandler {
+  (dwnRequest: DwnRequest): Promise<void | DwnResponse>
+}
+interface IMatch {
+  (req: DwnRequest): boolean
+}
+interface IAddHandler {
+  (match: IMatch, handler: IHandler): void
+}
+interface IHandlerMatch {
+  match: IMatch
+  handler: IHandler
 }
 
 type DidStateWithSignatureInput = {
@@ -21,7 +31,7 @@ export class DwnProxy {
   client: DwnHttpClient
   options: DwnProxyOptions
   dwn: Dwn
-  #handlers: Array<IInbound> = []
+  #handlers: Array<IHandlerMatch> = []
 
   constructor(options: DwnProxyOptions) {
     this.options = options
@@ -29,20 +39,19 @@ export class DwnProxy {
 
   #inbound = async (request: DwnRequest): Promise<DwnResponse | void> => {
     // [kw] could use a has map of sorts instead of iterating every time
-    for (const handler of this.#handlers) {
-      const func = handler(request)
-      if (func) {
+    for (const { match, handler } of this.#handlers) {
+      const isMatch = match(request)
+      if (isMatch) {
         if (request.data) // go ahead and read the data into an object
           request.data = await readReq(request.data)
-        return await func(request)
+        return await handler(request)
       }
     }
 
     throw new Error('Unable to find middleware')
   }
 
-  addHandler = (lambda: (req: DwnRequest) => boolean, handler: ((dwnRequest: DwnRequest) => Promise<void | DwnResponse>)) =>
-    this.#handlers.push(req => lambda(req) ? handler : undefined)
+  addHandler: IAddHandler = (match, handler) => this.#handlers.push({ match, handler })
 
   async listen(port: number) {
     this.dwn = await Dwn.create()

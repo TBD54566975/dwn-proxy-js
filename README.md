@@ -10,7 +10,7 @@ Making DWN integrations with traditional backend services easy.
 * [Usage](#usage)
   * [`new DwnProxy(options)`](#new-dwnproxyoptions)
   * [`DwnProxy.listen(port)`](#dwnproxylistenport)
-  * [`DwnProxy.addHandler(lambda, handler)`](#dwnproxyaddhandlerlambda-handler)
+  * [`DwnProxy.addHandler(match, handler)`](#dwnproxyaddhandlermatch-handler)
   * [`DwnProxy.server.api`](#dwnproxyserverapi)
 * [Project Resources](#project-resources)
 
@@ -29,7 +29,8 @@ npm install @tbd54566975/dwn-proxy-js
 ```
 
 ```typescript
-import { DwnProxy, DwnRequest, Request, Response, readReq } from '@tbd54566975/dwn-proxy-js'
+import { DwnProxy, readReq } from '@tbd54566975/dwn-proxy-js'
+import type { DwnRequest, Request, Response } from '@tbd54566975/dwn-proxy-js'
 
 const isMessageA = (dwnRequest: DwnRequest): boolean =>
   dwnRequest.message.descriptor.interface === 'Records' &&
@@ -107,7 +108,7 @@ Start a JSON-RPC server, hosting an HTTP server at the given `port`.
 
 - (required) `port`: number
 
-## `DwnProxy.addHandler(lambda, handler)`
+## `DwnProxy.addHandler(match, handler)`
 
 Add a handler for inbound DWN Messages.
 
@@ -124,7 +125,7 @@ proxy.addHandler(
 )
 ```
 
-- (required) `lambda`: `(req: DwnRequest) => boolean`
+- (required) `match`: `(req: DwnRequest) => boolean`
   - if evaluated to `true` then use `handler` for the given message
 - (required) `handler`: `(dwnRequest: DwnRequest) => Promise<void | DwnResponse>`
   - if return type is `void` then the underlying `DwnHttpServer` will call `dwn.processMessage()` whereafter it will respond to the client w/ the given result

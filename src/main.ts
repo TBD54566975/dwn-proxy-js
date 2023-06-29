@@ -4,4 +4,4 @@ export * from './dwn-json-rpc.js'
 export * from './dwn-proxy.js'
 export * from './dwn-types.js'
 
-export { Request, Response } from 'express'
+export type { Request, Response } from 'express'

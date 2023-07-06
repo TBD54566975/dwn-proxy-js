@@ -1,6 +1,6 @@
 {
   "name": "@tbd54566975/dwn-proxy-js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Bidirectional proxy between DWM's <> RESTful",
   "type": "module",
   "main": "./dist/cjs/main.cjs",

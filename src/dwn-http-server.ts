@@ -50,7 +50,9 @@ export class DwnHttpServer {
             dwnRequest.data = requestDataStream
           }
         } catch (err) {
-          // todo handle parse error (400)
+          // todo integrate w/ web5-js expected response
+          console.error('Failed to parse client request', err)
+          res.status(400).end(err.message)
           return
         }
 
@@ -67,7 +69,10 @@ export class DwnHttpServer {
           res.json(createResponse(dwnResponse))
         }
       } catch (err) {
-        // todo handle catch-all error (500)
+        // todo integrate w/ web5-js expected response
+        console.error('Failed to process message', err)
+        res.status(500).end(err.message)
+        return
       }
     })
   }

@@ -12,7 +12,8 @@ export const generateDidState = async (endpoint: string): Promise<DidStateWithSi
     }]
   })
 
-  console.log(`Created DID and hosting: ${didState.id}`)
+  console.log(`Created DID & hosting service endpoint at ${endpoint}`)
+  console.log(didState.id)
 
   const { keys } = didState
   const [ key ] = keys

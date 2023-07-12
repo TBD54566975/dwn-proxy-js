@@ -25,21 +25,35 @@ const resolveDotDelimited = (obj, value) => {
   return protoValue
 }
 
+const referenceReplace = (obj, replacements = {}) => {
+  // ensure the protocol definition is in the possible replacements
+  if (!replacements['#protocolDefinition']) replacements['#protocolDefinition'] = pfiProtocolDefinition
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'object') {
+      obj[key] = referenceReplace(value, replacements)
+    } else if (typeof value === 'string' && value[0] === '#') {
+      const dotDelimited = value.split('.')
+      if (dotDelimited.length === 1) {
+        obj[key] = replacements[value]
+      } else {
+        obj[key] = resolveDotDelimited(replacements[dotDelimited[0]], value)
+      }
+    }
+  }
+
+  return obj
+}
+
 const isMatch = (descriptor, match) => {
+  match = referenceReplace(match)
   return Object.entries(match).every(([key, value]) => {
     let obj = descriptor
 
-    // Traverse the property chain to get the value from the dwnRequest
     for (const prop of key.split('.')) {
       obj = obj[prop]
-      if (obj === undefined) {
-        return false
-      }
+      if (obj === undefined) return false
     }
-
-    // Resolve special '#protocolDefinition' references
-    if (typeof value === 'string' && value.startsWith('#protocolDefinition.'))
-      value = resolveDotDelimited(pfiProtocolDefinition, value)
 
     return obj === value
   })
@@ -71,29 +85,23 @@ const processMessage = async (params) => {
 }
 
 const queryRecord = async (params) => {
-  const message = (await RecordsQuery.create(params)).message
-  return proxy.dwn.processMessage(didState.id, message)
+  const message = (await RecordsQuery.create({
+    ...params,
+    authorizationSignatureInput: didState.signatureInput
+  })).message
+  const { entries } = await proxy.dwn.processMessage(didState.id, message)
+  return entries[entries.length - 1]
+}
+
+const sendDwnRequest = async (params) => {
+  const reply = await proxy.client.send(params.to, params.message, JSON.stringify(params.data))
+  console.log('DWN Request sent', reply)
 }
 
 const inboundHandler = async (dwnRequest, actions) => {
   let outputs = {}
   for (let action of actions) {
-    // replace any # references
-    for (const [key, value] of Object.entries(action.params)) {
-      if (value[0] === '#') {
-        if (value === '#inboundDwnRequest.message') {
-          action.params[key] = dwnRequest.message
-        } else if (value === '#inboundDwnRequest.data') {
-          action.params[key] = dwnRequest.data
-        } else {
-          if (outputs[value]) {
-            action.params[key] = outputs[value]
-          } else {
-            throw new Error(`Unknown special value ${key}:${value}`)
-          }
-        }
-      }
-    }
+    action.params = referenceReplace(action.params, { '#dwnRequest': dwnRequest, ...outputs })
 
     // handle action
     switch (action.action) {
@@ -122,33 +130,9 @@ const outboundHandler = async (req, res, actions) => {
 
   for (let action of actions) {
     console.log('Executing action', action.action)
+    action.params = referenceReplace(action.params, { '#body': body, ...outputs })
 
-    // replace any # references
-    for (const [key, value] of Object.entries(action.params)) {
-      if (value[0] === '#') {
-        console.log('kw dbg', value)
-        if (value.startsWith('#protocolDefinition.')) {
-          console.log('kw dbg', resolveDotDelimited(pfiProtocolDefinition, value))
-          action.params[key] = resolveDotDelimited(pfiProtocolDefinition, value)
-        } else if (value.startsWith('#inboundRequestBody.')) {
-          action.params[key] = resolveDotDelimited(body, value)
-        } else {
-          const dotDelimited = value.split('.')
-          const obj = outputs[dotDelimited[0]]
-          if (obj) {
-            if (dotDelimited.length > 1) {
-              action.params[key] = resolveDotDelimited(obj, value)
-            } else {
-              action.params[key] = outputs[value]
-            }
-          } else {
-            throw new Error(`Unknown special value ${key}:${value}`)
-          }
-        }
-      }
-    }
-
-    console.log(action.params)
+    console.log('kw dbg', action.params)
 
     // handle action
     switch (action.action) {
@@ -165,7 +149,9 @@ const outboundHandler = async (req, res, actions) => {
         return action.params
       case 'queryRecord()':
         outputs['#' + action.id] = await queryRecord(action.params)
-        console.log('kw dbg', outputs)
+        break
+      case 'sendDwnRequest()':
+        await sendDwnRequest(action.params)
         break
       default:
         console.error('Unknown action', action.action)

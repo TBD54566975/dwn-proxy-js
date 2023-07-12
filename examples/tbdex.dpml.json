@@ -1,0 +1,96 @@
+{
+  "protocolDefinition": "../path/to/protocol-definition",
+  "routes": [
+    {
+      "description": "Inbound Offering query",
+      "direction": "INBOUND",
+      "match": {
+        "interfaceMethod": "RecordsQuery",
+        "query": "filter.schema='https://tbd.website/resources/tbdex/Offering'"
+      },
+      "actions": [
+        {
+          "id": "1",
+          "description": "Fetch offering from backend",
+          "action": "httpRequest()",
+          "params": {
+            "method": "GET",
+            "endpoint": "https://tbdollars-staging.tbddev.org/tbdex/offers"
+          }
+        },
+        {
+          "id": "2",
+          "description": "Create the DWN record for the offering",
+          "action": "createRecordsWrite()",
+          "params": {
+            "published": true,
+            "data": "#1",
+            "dataFormat": "application/json",
+            "schema": "https://tbd.website/resources/tbdex/Offering"
+          }
+        },
+        {
+          "id": "3",
+          "description": "Write the offering record to self",
+          "action": "processMessage()",
+          "params": {
+            "message": "#2",
+            "data": "#1"
+          }
+        },
+        {
+          "id": "4",
+          "description": "Query for the newly written offering record",
+          "action": "processMessage()",
+          "params": {
+            "message": "#inboundDwnRequest.message"
+          }
+        },
+        {
+          "id": "5",
+          "description": "Reply to client DWN Request",
+          "action": "replyToDwnRequest()",
+          "params": {
+            "reply": "#4"
+          }
+        }
+      ]
+    },
+    {
+      "description": "Inbound RFQ",
+      "direction": "INBOUND",
+      "match": {
+        "interfaceMethod": "RecordsWrite",
+        "query": "protocol=#protocolDefinition.protocol AND protocolPath='RFQ' AND schema=#protocolDefinition.types.RFQ.schema"
+      },
+      "actions": [
+        {
+          "id": "1",
+          "description": "PUT fetch the RFQ to the backend",
+          "action": "httpRequest()",
+          "params": {
+            "method": "PUT",
+            "endpoint": "https://tbdollars-staging.tbddev.org/tbdex/rfq",
+            "body": "#inboundDwnRequest.data"
+          }
+        },
+        {
+          "id": "2",
+          "description": "Process the inbound DWN Request Message",
+          "action": "processMessage()",
+          "params": {
+            "message": "#inboundDwnRequest.message"
+          }
+        },
+        {
+          "id": "3",
+          "description": "Reply to client DWN Request",
+          "action": "replyToDwnRequest()",
+          "params": {
+            "reply": "#2"
+          }
+        }
+      ]
+    }
+  ]
+}

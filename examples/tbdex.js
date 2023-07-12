@@ -1,7 +1,8 @@
-import { RecordsWrite } from '@tbd54566975/dwn-sdk-js'
+import { ProtocolsConfigure, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 import { DwnProxy } from '../dist/esm/main.mjs'
 import { pfiProtocolDefinition } from './tbdex-protocol-definitions.js'
 import config from './tbdex.dpml.json' assert { type: 'json' }
+import { Readable } from 'node:stream'
 
 const PORT = 8080
 const didState = {
@@ -12,8 +13,8 @@ const proxy = new DwnProxy({
   didState
 })
 
-const isMatch = (descriptor, matchObj) => {
-  return Object.entries(matchObj).every(([key, value]) => {
+const isMatch = (descriptor, match) => {
+  return Object.entries(match).every(([key, value]) => {
     let obj = descriptor
 
     // Traverse the property chain to get the value from the dwnRequest
@@ -60,12 +61,17 @@ const createRecordsWrite = async (params) => {
 }
 
 const processMessage = async (params) => {
-  return await proxy.dwn.processMessage(didState.id, params.message, params.data)
+  return await proxy.dwn.processMessage(
+    didState.id,
+    params.message,
+    params.data ? Readable.from(JSON.stringify(params.data)) : undefined)
 }
 
 const inboundHandler = async (dwnRequest, actions) => {
   let outputs = {}
   for (let action of actions) {
+    console.log('Executing action', action.action)
+
     // replace any # references
     for (const [key, value] of Object.entries(action.params)) {
       if (value[0] === '#') {
@@ -82,6 +88,7 @@ const inboundHandler = async (dwnRequest, actions) => {
         }
       }
     }
+    console.log(outputs, action.params)
 
     // handle action
     switch (action.action) {
@@ -121,6 +128,15 @@ const main = async () => {
   }
 
   await proxy.listen(PORT)
+
+  // todo use dpml declaration
+  await proxy.dwn.processMessage(
+    didState.id,
+    (await ProtocolsConfigure.create({
+      definition                  : pfiProtocolDefinition,
+      authorizationSignatureInput : didState.signatureInput
+    })).message
+  )
 }
 
 main()

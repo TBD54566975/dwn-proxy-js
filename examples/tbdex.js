@@ -1,10 +1,21 @@
+import { RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 import { DwnProxy } from '../dist/esm/main.mjs'
 import { pfiProtocolDefinition } from './tbdex-protocol-definitions.js'
 import config from './tbdex.dpml.json' assert { type: 'json' }
 
-const isMatch = (dwnRequest, matchObj) => {
+const PORT = 8080
+const didState = {
+  id             : 'did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ',
+  signatureInput : JSON.parse('{"privateJwk":{"kty":"EC","crv":"secp256k1","x":"IFLqu432PjcOkGFOo-5qmpQRNkNNxhim0LSlN08vgqg","y":"XsG_ut8KEivnTnEj89XUdXDZToa9-8tjhLzSBeJs-HY","d":"IqQJpnTHVAjgfnJLtaNXlLoI7WQGgJ8fyEU4Rxaf0PE"},"protectedHeader":{"alg":"secp256k1","kid":"did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ#did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ#dwn"}}')
+}
+const proxy = new DwnProxy({
+  didState
+})
+
+const isMatch = (descriptor, matchObj) => {
+  console.log('isMatch called', descriptor, matchObj)
   return Object.entries(matchObj).every(([key, value]) => {
-    let obj = dwnRequest
+    let obj = descriptor
 
     // Traverse the property chain to get the value from the dwnRequest
     for (const prop of key.split('.')) {
@@ -32,34 +43,85 @@ const isMatch = (dwnRequest, matchObj) => {
   })
 }
 
+const httpRequest = async (params) => {
+  const res = await fetch(params.endpoint, {
+    method : params.method,
+    body   : params.body ? JSON.stringify(params.body) : undefined
+  })
 
-const inboundHandler = (dwnRequest, actions) => {
-  console.log(dwnRequest, actions)
+  return await res.json()
+}
+
+const createRecordsWrite = async (params) => {
+  return await RecordsWrite.create({
+    ...params,
+    data                        : Buffer.from(JSON.stringify(params.data), 'utf-8'),
+    authorizationSignatureInput : didState.signatureInput
+  })
+}
+
+const processMessage = async (params) => {
+  return await proxy.dwn.processMessage(didState.id, params.message, params.data)
+}
+
+const inboundHandler = async (dwnRequest, actions) => {
+  let outputs = {}
+  for (let action of actions) {
+    // replace any # references
+    for (const [key, value] of Object.entries(action.params)) {
+      if (value[0] === '#') {
+        if (value === '#inboundDwnRequest.message') {
+          action.params[key] = dwnRequest.message
+        } else if (value === '#inboundDwnRequest.data') {
+          action.params[key] = dwnRequest.data
+        } else {
+          if (outputs[value]) {
+            action.params[key] = outputs[value]
+          } else {
+            throw new Error(`Unknown special value ${key}:${value}`)
+          }
+        }
+      }
+    }
+
+    // handle action
+    switch (action.action) {
+      case 'httpRequest()':
+        outputs['#' + action.id] = await httpRequest(action.params)
+        break
+      case 'createRecordsWrite()':
+        outputs['#' + action.id] = await createRecordsWrite(action.params)
+        break
+      case 'processMessage()':
+        outputs['#' + action.id] = await processMessage(action.params)
+        break
+      case 'replyToDwnRequest()':
+        return action.params.reply
+      default:
+        console.log('Unknown action', action.action)
+    }
+  }
+
+  throw new Error(`Never replied to client`)
 }
 
 const main = async () => {
-  const PORT = 8080
-  const didState = {
-    id             : 'did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ',
-    signatureInput : JSON.parse('{"privateJwk":{"kty":"EC","crv":"secp256k1","x":"IFLqu432PjcOkGFOo-5qmpQRNkNNxhim0LSlN08vgqg","y":"XsG_ut8KEivnTnEj89XUdXDZToa9-8tjhLzSBeJs-HY","d":"IqQJpnTHVAjgfnJLtaNXlLoI7WQGgJ8fyEU4Rxaf0PE"},"protectedHeader":{"alg":"secp256k1","kid":"did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ#did:ion:EiDej1VG5MfG7A4s9cPDXxiTrP2AwvyCZ1y4H3s_ctCW_g:eyJkZWx0YSI6eyJwYXRjaGVzIjpbeyJhY3Rpb24iOiJyZXBsYWNlIiwiZG9jdW1lbnQiOnsicHVibGljS2V5cyI6W3siaWQiOiJkd24iLCJwdWJsaWNLZXlKd2siOnsiY3J2Ijoic2VjcDI1NmsxIiwia3R5IjoiRUMiLCJ4IjoiSUZMcXU0MzJQamNPa0dGT28tNXFtcFFSTmtOTnhoaW0wTFNsTjA4dmdxZyIsInkiOiJYc0dfdXQ4S0Vpdm5UbkVqODlYVWRYRFpUb2E5LTh0amhMelNCZUpzLUhZIn0sInB1cnBvc2VzIjpbImF1dGhlbnRpY2F0aW9uIl0sInR5cGUiOiJKc29uV2ViS2V5MjAyMCJ9XSwic2VydmljZXMiOlt7ImlkIjoiZHduIiwic2VydmljZUVuZHBvaW50Ijp7Im5vZGVzIjpbImh0dHA6Ly8wLjAuMC4wOjgwODAiXX0sInR5cGUiOiJEZWNlbnRyYWxpemVkV2ViTm9kZSJ9XX19XSwidXBkYXRlQ29tbWl0bWVudCI6IkVpRE1ZS2RvVTBLMHZQTzRhNWVNUVpWaExqdXFOZzlJY0lvWDRFQzRPV1dXUVEifSwic3VmZml4RGF0YSI6eyJkZWx0YUhhc2giOiJFaUFwYWJJeDNBVUYxWUw0MXFxU2kzNW13TnMySDdLR2duX2ZBeV9Sa2JXX1FnIiwicmVjb3ZlcnlDb21taXRtZW50IjoiRWlEMlc0TWVsVzU3YjBrSVlVOFp3a1RuSW96RnpQcXlCc3R2UXNEeFFBQ1J4dyJ9fQ#dwn"}}')
-  }
-  const proxy = new DwnProxy({
-    didState
-  })
-
-  // todo wire up handlers
   for (const route of config.routes) {
     console.log('Configuring route', route.description)
 
     if (route.direction === 'INBOUND') {
       proxy.addHandler(
-        dwnRequest => isMatch(dwnRequest, route.match),
+        dwnRequest => isMatch(dwnRequest.message.descriptor, route.match),
         dwnRequest => inboundHandler(dwnRequest, route.actions)
       )
+    } else if (route.direction === 'OUTBOUND') {
+      // todo
+    } else {
+      throw new Error(`Route direction unsupported ${route.direction}`)
     }
   }
 
-  // await proxy.listen(PORT)
+  await proxy.listen(PORT)
 }
 
 main()

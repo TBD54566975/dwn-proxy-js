@@ -85,17 +85,18 @@ const processMessage = async (params) => {
 }
 
 const queryRecord = async (params) => {
+  // TODO assumption!
   const message = (await RecordsQuery.create({
     ...params,
-    authorizationSignatureInput: didState.signatureInput
+    authorizationSignatureInput : didState.signatureInput,
+    dateSort                    : 'createdAscending'
   })).message
   const { entries } = await proxy.dwn.processMessage(didState.id, message)
   return entries[entries.length - 1]
 }
 
 const sendDwnRequest = async (params) => {
-  const reply = await proxy.client.send(params.to, params.message, JSON.stringify(params.data))
-  console.log('DWN Request sent', reply)
+  await proxy.client.send(params.to, params.message, JSON.stringify(params.data))
 }
 
 const inboundHandler = async (dwnRequest, actions) => {
@@ -131,8 +132,6 @@ const outboundHandler = async (req, res, actions) => {
   for (let action of actions) {
     console.log('Executing action', action.action)
     action.params = referenceReplace(action.params, { '#body': body, ...outputs })
-
-    console.log('kw dbg', action.params)
 
     // handle action
     switch (action.action) {

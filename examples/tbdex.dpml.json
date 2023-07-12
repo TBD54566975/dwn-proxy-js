@@ -56,6 +56,46 @@
           }
         }
       ]
+    },
+    {
+      "description": "Inbound RFQ",
+      "direction": "INBOUND",
+      "match": {
+        "interface": "Records",
+        "method": "Write",
+        "protocol": "#protocolDefinition.protocol",
+        "protocolPath": "RFQ",
+        "schema": "#protocolDefinition.types.RFQ.schema"
+      },
+      "actions": [
+        {
+          "id": "1",
+          "description": "PUT fetch the RFQ to the backend",
+          "action": "httpRequest()",
+          "params": {
+            "method": "PUT",
+            "endpoint": "https://tbdollars-staging.tbddev.org/tbdex/rfq",
+            "body": "#inboundDwnRequest.data"
+          }
+        },
+        {
+          "id": "2",
+          "description": "Process the inbound DWN Request Message",
+          "action": "processMessage()",
+          "params": {
+            "message": "#inboundDwnRequest.message",
+            "data": "#inboundDwnRequest.data"
+          }
+        },
+        {
+          "id": "3",
+          "description": "Reply to client DWN Request",
+          "action": "replyToDwnRequest()",
+          "params": {
+            "reply": "#2"
+          }
+        }
+      ]
     }
   ]
 }

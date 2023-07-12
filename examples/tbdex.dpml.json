@@ -5,8 +5,9 @@
       "description": "Inbound Offering query",
       "direction": "INBOUND",
       "match": {
-        "interfaceMethod": "RecordsQuery",
-        "query": "filter.schema='https://tbd.website/resources/tbdex/Offering'"
+        "interface": "Records",
+        "method": "Query",
+        "filter.schema": "https://tbd.website/resources/tbdex/Offering"
       },
       "actions": [
         {
@@ -60,8 +61,11 @@
       "description": "Inbound RFQ",
       "direction": "INBOUND",
       "match": {
-        "interfaceMethod": "RecordsWrite",
-        "query": "protocol=#protocolDefinition.protocol AND protocolPath='RFQ' AND schema=#protocolDefinition.types.RFQ.schema"
+        "interface": "Records",
+        "method": "Write",
+        "protocol": "#protocolDefinition.protocol",
+        "protocolPath": "RFQ",
+        "schema": "#protocolDefinition.types.RFQ.schema"
       },
       "actions": [
         {

@@ -1,6 +1,6 @@
 import { ProtocolsConfigure, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 import { DwnProxy } from '../dist/esm/main.mjs'
-import { pfiProtocolDefinition } from './tbdex-protocol-definitions.js'
+import { pfiProtocolDefinition } from './tbdex-protocol.js'
 import config from './tbdex.dpml.json' assert { type: 'json' }
 import { Readable } from 'node:stream'
 
@@ -49,15 +49,16 @@ const httpRequest = async (params) => {
     body   : params.body ? JSON.stringify(params.body) : undefined
   })
 
-  return await res.json()
+  if (res.headers.has('content-length') && res.headers.get('content-length') !== '0')
+    return await res.json()
 }
 
-const createRecordsWrite = async (params) => {
-  return await RecordsWrite.create({
+const createRecordsWriteMessage = async (params) => {
+  return (await RecordsWrite.create({
     ...params,
     data                        : Buffer.from(JSON.stringify(params.data), 'utf-8'),
     authorizationSignatureInput : didState.signatureInput
-  })
+  })).message
 }
 
 const processMessage = async (params) => {
@@ -88,20 +89,21 @@ const inboundHandler = async (dwnRequest, actions) => {
         }
       }
     }
-    console.log(outputs, action.params)
 
     // handle action
     switch (action.action) {
       case 'httpRequest()':
         outputs['#' + action.id] = await httpRequest(action.params)
         break
-      case 'createRecordsWrite()':
-        outputs['#' + action.id] = await createRecordsWrite(action.params)
+      case 'createRecordsWriteMessage()':
+        outputs['#' + action.id] = await createRecordsWriteMessage(action.params)
         break
       case 'processMessage()':
         outputs['#' + action.id] = await processMessage(action.params)
         break
       case 'replyToDwnRequest()':
+        console.log(outputs['#2'])
+        console.log(action.params)
         return action.params
       default:
         console.log('Unknown action', action.action)

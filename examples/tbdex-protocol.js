@@ -120,3 +120,29 @@ export const pfiProtocolDefinition = {
     }
   }
 }
+
+const ID_NAMESPACE = 'tbdex'
+// TODO add function for validating an existing string and returning strongly typed id
+// TODO support strongly typed id per type e.g TbdexId<Offering>
+export function createTbdexId(typeNamespace) {
+  // return `${ID_NAMESPACE}:${typeNamespace}:${ulid()}`
+  return `${ID_NAMESPACE}:${typeNamespace}:ulid()`
+}
+
+export function createMessage(opts) {
+  var _a, _b, _c, _d, _e, _f
+  const id = createTbdexId(opts.type)
+  const threadId = (_b = (_a = opts.last) === null || _a === void 0 ? void 0 : _a.threadId) !== null && _b !== void 0 ? _b : id
+  const parentId = (_d = (_c = opts.last) === null || _c === void 0 ? void 0 : _c.id) !== null && _d !== void 0 ? _d : null
+  const { type, body } = opts
+  return {
+    id,
+    threadId,
+    parentId,
+    createdTime : new Date().toISOString(),
+    type,
+    body,
+    to          : (_e = opts.to) !== null && _e !== void 0 ? _e : opts.last.to,
+    from        : (_f = opts.from) !== null && _f !== void 0 ? _f : opts.last.from,
+  }
+}

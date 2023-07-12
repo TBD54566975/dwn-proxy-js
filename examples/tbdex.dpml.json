@@ -16,13 +16,13 @@
           "action": "httpRequest()",
           "params": {
             "method": "GET",
-            "endpoint": "https://tbdollars-staging.tbddev.org/tbdex/offers"
+            "endpoint": "http://0.0.0.0:3001/tbdex/offers"
           }
         },
         {
           "id": "2",
           "description": "Create the DWN record for the offering",
-          "action": "createRecordsWrite()",
+          "action": "createRecordsWriteMessage()",
           "params": {
             "published": true,
             "data": "#1",
@@ -74,7 +74,7 @@
           "action": "httpRequest()",
           "params": {
             "method": "PUT",
-            "endpoint": "https://tbdollars-staging.tbddev.org/tbdex/rfq",
+            "endpoint": "http://0.0.0.0:3001/tbdex/rfq",
             "body": "#inboundDwnRequest.data"
           }
         },

@@ -22,7 +22,7 @@
         {
           "id": "2",
           "description": "Create the DWN record for the offering",
-          "action": "createRecordsWrite()",
+          "action": "createRecordsWriteMessage()",
           "params": {
             "published": true,
             "data": "#1",
@@ -116,7 +116,7 @@
         {
           "id": "2",
           "description": "Create the DWN record for the quote",
-          "action": "createRecordsWrite()",
+          "action": "createRecordsWriteMessage()",
           "params": {
             "data": "#inboundRequestBody",
             "dataFormat": "application/json",

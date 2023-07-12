@@ -1,5 +1,5 @@
-import { ProtocolsConfigure, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
-import { DwnProxy } from '../dist/esm/main.mjs'
+import { ProtocolsConfigure, RecordsQuery, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
+import { DwnProxy, readReq } from '../dist/esm/main.mjs'
 import { pfiProtocolDefinition } from './tbdex-protocol.js'
 import config from './tbdex.dpml.json' assert { type: 'json' }
 import { Readable } from 'node:stream'
@@ -12,6 +12,18 @@ const didState = {
 const proxy = new DwnProxy({
   didState
 })
+
+const resolveDotDelimited = (obj, value) => {
+  const propChain = value.split('.').slice(1)
+  let protoValue = obj
+  for (let prop of propChain) {
+    protoValue = protoValue[prop]
+    if (protoValue === undefined) {
+      return false
+    }
+  }
+  return protoValue
+}
 
 const isMatch = (descriptor, match) => {
   return Object.entries(match).every(([key, value]) => {
@@ -26,19 +38,9 @@ const isMatch = (descriptor, match) => {
     }
 
     // Resolve special '#protocolDefinition' references
-    if (typeof value === 'string' && value.startsWith('#protocolDefinition.')) {
-      const propChain = value.split('.').slice(1)
-      let protoValue = pfiProtocolDefinition
-      for (let prop of propChain) {
-        protoValue = protoValue[prop]
-        if (protoValue === undefined) {
-          return false
-        }
-      }
-      value = protoValue
-    }
+    if (typeof value === 'string' && value.startsWith('#protocolDefinition.'))
+      value = resolveDotDelimited(pfiProtocolDefinition, value)
 
-    // Check equality
     return obj === value
   })
 }
@@ -68,11 +70,14 @@ const processMessage = async (params) => {
     params.data ? Readable.from(JSON.stringify(params.data)) : undefined)
 }
 
+const queryRecord = async (params) => {
+  const message = (await RecordsQuery.create(params)).message
+  return proxy.dwn.processMessage(didState.id, message)
+}
+
 const inboundHandler = async (dwnRequest, actions) => {
   let outputs = {}
   for (let action of actions) {
-    console.log('Executing action', action.action)
-
     // replace any # references
     for (const [key, value] of Object.entries(action.params)) {
       if (value[0] === '#') {
@@ -102,33 +107,76 @@ const inboundHandler = async (dwnRequest, actions) => {
         outputs['#' + action.id] = await processMessage(action.params)
         break
       case 'replyToDwnRequest()':
-        console.log(outputs['#2'])
-        console.log(action.params)
         return action.params
       default:
-        console.log('Unknown action', action.action)
+        console.error('Unknown action', action.action)
     }
   }
 
   throw new Error(`Never replied to client`)
 }
 
-const main = async () => {
-  for (const route of config.routes) {
-    console.log('Configuring route', route.description)
+const outboundHandler = async (req, res, actions) => {
+  const body = await readReq(req)
+  let outputs = {}
 
-    if (route.direction === 'INBOUND') {
-      proxy.addHandler(
-        dwnRequest => isMatch(dwnRequest.message.descriptor, route.match),
-        dwnRequest => inboundHandler(dwnRequest, route.actions)
-      )
-    } else if (route.direction === 'OUTBOUND') {
-      // todo
-    } else {
-      throw new Error(`Route direction unsupported ${route.direction}`)
+  for (let action of actions) {
+    console.log('Executing action', action.action)
+
+    // replace any # references
+    for (const [key, value] of Object.entries(action.params)) {
+      if (value[0] === '#') {
+        console.log('kw dbg', value)
+        if (value.startsWith('#protocolDefinition.')) {
+          console.log('kw dbg', resolveDotDelimited(pfiProtocolDefinition, value))
+          action.params[key] = resolveDotDelimited(pfiProtocolDefinition, value)
+        } else if (value.startsWith('#inboundRequestBody.')) {
+          action.params[key] = resolveDotDelimited(body, value)
+        } else {
+          const dotDelimited = value.split('.')
+          const obj = outputs[dotDelimited[0]]
+          if (obj) {
+            if (dotDelimited.length > 1) {
+              action.params[key] = resolveDotDelimited(obj, value)
+            } else {
+              action.params[key] = outputs[value]
+            }
+          } else {
+            throw new Error(`Unknown special value ${key}:${value}`)
+          }
+        }
+      }
+    }
+
+    console.log(action.params)
+
+    // handle action
+    switch (action.action) {
+      case 'httpRequest()':
+        outputs['#' + action.id] = await httpRequest(action.params)
+        break
+      case 'createRecordsWriteMessage()':
+        outputs['#' + action.id] = await createRecordsWriteMessage(action.params)
+        break
+      case 'processMessage()':
+        outputs['#' + action.id] = await processMessage(action.params)
+        break
+      case 'replyToDwnRequest()':
+        return action.params
+      case 'queryRecord()':
+        outputs['#' + action.id] = await queryRecord(action.params)
+        console.log('kw dbg', outputs)
+        break
+      default:
+        console.error('Unknown action', action.action)
     }
   }
 
+  res.status(200)
+  res.end()
+}
+
+const main = async () => {
   await proxy.listen(PORT)
 
   // todo use dpml declaration
@@ -139,6 +187,23 @@ const main = async () => {
       authorizationSignatureInput : didState.signatureInput
     })).message
   )
+
+  for (const route of config.routes) {
+    console.log('Configuring route', route.description)
+
+    if (route.direction === 'INBOUND') {
+      proxy.addHandler(
+        dwnRequest => isMatch(dwnRequest.message.descriptor, route.match),
+        dwnRequest => inboundHandler(dwnRequest, route.actions)
+      )
+    } else if (route.direction === 'OUTBOUND') {
+      if (route.method === 'PUT') {
+        proxy.server.api.put(route.path, async (req, res) => await outboundHandler(req, res, route.actions))
+      }
+    } else {
+      throw new Error(`Route direction unsupported ${route.direction}`)
+    }
+  }
 }
 
 main()

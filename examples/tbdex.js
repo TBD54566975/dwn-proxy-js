@@ -13,7 +13,6 @@ const proxy = new DwnProxy({
 })
 
 const isMatch = (descriptor, matchObj) => {
-  console.log('isMatch called', descriptor, matchObj)
   return Object.entries(matchObj).every(([key, value]) => {
     let obj = descriptor
 
@@ -96,7 +95,7 @@ const inboundHandler = async (dwnRequest, actions) => {
         outputs['#' + action.id] = await processMessage(action.params)
         break
       case 'replyToDwnRequest()':
-        return action.params.reply
+        return action.params
       default:
         console.log('Unknown action', action.action)
     }

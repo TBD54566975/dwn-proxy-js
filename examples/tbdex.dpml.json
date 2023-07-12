@@ -44,7 +44,7 @@
           "description": "Query for the newly written offering record",
           "action": "processMessage()",
           "params": {
-            "message": "#inboundDwnRequest.message"
+            "message": "#dwnRequest.message"
           }
         },
         {
@@ -75,7 +75,7 @@
           "params": {
             "method": "PUT",
             "endpoint": "http://0.0.0.0:3001/tbdex/rfq",
-            "body": "#inboundDwnRequest.data"
+            "body": "#dwnRequest.data"
           }
         },
         {
@@ -83,8 +83,8 @@
           "description": "Process the inbound DWN Request Message",
           "action": "processMessage()",
           "params": {
-            "message": "#inboundDwnRequest.message",
-            "data": "#inboundDwnRequest.data"
+            "message": "#dwnRequest.message",
+            "data": "#dwnRequest.data"
           }
         },
         {
@@ -119,12 +119,12 @@
           "description": "Create the DWN record for the quote",
           "action": "createRecordsWriteMessage()",
           "params": {
-            "data": "#inboundRequestBody",
+            "data": "#body",
             "dataFormat": "application/json",
             "protocol": "#protocolDefinition.protocol",
             "protocolPath": "RFQ/Quote",
             "schema": "#protocolDefinition.types.Quote.schema",
-            "recipient": "#inboundRequestBody.to",
+            "recipient": "#body.to",
             "parentId": "#1.recordId",
             "contextId": "#1.contextId"
           }
@@ -135,7 +135,7 @@
           "action": "processMessage()",
           "params": {
             "message": "#2",
-            "data": "#inboundRequestBody"
+            "data": "#body"
           }
         },
         {
@@ -143,9 +143,9 @@
           "description": "Send the quote to Alice",
           "action": "sendDwnRequest()",
           "params": {
-            "to": "#inboundRequestBody.to",
+            "to": "#body.to",
             "message": "#2",
-            "data": "#inboundRequestBody"
+            "data": "#body"
           }
         }
       ]

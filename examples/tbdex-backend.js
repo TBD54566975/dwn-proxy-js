@@ -105,7 +105,7 @@ const handleRfq = async (req, res) => {
     //   console.log(quoteRecordId)
     //   console.log('todo fire off some order status')
     // })
-  }, 4500)
+  }, 1500)
 
   res.statusCode = 202
   res.end()

@@ -110,8 +110,7 @@
           "params": {
             "filter": {
               "schema": "#protocolDefinition.types.RFQ.schema"
-            },
-            "dateStore": "createdAscending"
+            }
           }
         },
         {

@@ -6,7 +6,7 @@ import { Readable } from 'node:stream'
 import type { Readable as IsomorphicReadable } from 'readable-stream'
 import { readReq } from './dwn-http-server.js'
 
-export class MarkupDotReference {
+export class DwnProxyMarkup {
   static resolveDotDelimited = (obj: any, value: string) => {
     const propChain = value.split('.').slice(1)
     let protoValue = obj
@@ -19,12 +19,12 @@ export class MarkupDotReference {
     return protoValue
   }
 
-  static referenceReplace = (obj: any, replacements: any): any => {
+  static replace = (obj: any, replacements: any): any => {
     for (const [key, value] of Object.entries(obj)) {
       if (Array.isArray(value)) {
-        obj[key] = value.map(item => MarkupDotReference.referenceReplace(item, replacements))
+        obj[key] = value.map(item => DwnProxyMarkup.replace(item, replacements))
       } else if (typeof value === 'object') {
-        obj[key] = MarkupDotReference.referenceReplace(value, replacements)
+        obj[key] = DwnProxyMarkup.replace(value, replacements)
       } else if (typeof value === 'string' && value[0] === '#') {
         const dotDelimited = value.split('.')
         if (dotDelimited.length === 1) {
@@ -32,7 +32,7 @@ export class MarkupDotReference {
             obj[key] = replacements[value]
         } else {
           if (replacements[dotDelimited[0]])
-            obj[key] = MarkupDotReference.resolveDotDelimited(replacements[dotDelimited[0]], value)
+            obj[key] = DwnProxyMarkup.resolveDotDelimited(replacements[dotDelimited[0]], value)
         }
       }
     }
@@ -118,7 +118,7 @@ export class DwnProxyProtocols extends DwnProxy {
 
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
-      action.params = MarkupDotReference.referenceReplace(action.params, replacementPool)
+      action.params = DwnProxyMarkup.replace(action.params, replacementPool)
 
       if (action.action === 'replyToDwnRequest()')
         return action.params
@@ -134,7 +134,7 @@ export class DwnProxyProtocols extends DwnProxy {
 
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
-      action.params = MarkupDotReference.referenceReplace(action.params, replacementPool)
+      action.params = DwnProxyMarkup.replace(action.params, replacementPool)
       replacementPool['#' + action.id] = await this.#handleAction(action)
     }
 
@@ -154,7 +154,7 @@ export class DwnProxyProtocols extends DwnProxy {
     )
 
     // go ahead and replace any references to the protocol definition
-    MarkupDotReference.referenceReplace(protocol.routes, { '#definition': protocol.definition })
+    DwnProxyMarkup.replace(protocol.routes, { '#definition': protocol.definition })
 
     for (const route of protocol.routes) {
       console.log('Configuring route', route.description)

@@ -130,8 +130,7 @@ export class DwnProxyProtocols extends DwnProxy {
   }
 
   #outbound = async (req: Request, res: Response, actions: Array<any>) => {
-    const body = await readReq(req)
-    let replacementPool = { '#body': body }
+    let replacementPool = { '#body': await readReq(req) }
 
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
@@ -144,8 +143,6 @@ export class DwnProxyProtocols extends DwnProxy {
   }
 
   async install(protocol: any) {
-    await this.init()
-
     await this.dwn.processMessage(
       this.options.didState!.id,
       (await ProtocolsConfigure.create({

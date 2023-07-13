@@ -48,7 +48,7 @@ export class DwnProxy {
 
   addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
 
-  init = async () => {
+  async listen() {
     if (!this.options.port)
       this.options.port = 8080
 
@@ -62,10 +62,6 @@ export class DwnProxy {
       dwn     : this.dwn,
       handler : this.#inbound
     })
-  }
-
-  async listen() {
-    await this.init()
 
     this.server.listen(this.options.port, () => {
       console.log(`server listening on port ${this.options.port}`)

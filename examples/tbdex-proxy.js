@@ -1,5 +1,4 @@
 import protocol from './tbdex.dpml.json' assert { type: 'json' }
-import { pfiProtocolDefinition } from './tbdex-protocol.js'
 import { DwnProxyProtocols } from '../dist/esm/main.mjs'
 
 const PORT = 8080
@@ -9,8 +8,6 @@ const didState = {
 }
 
 const main = async () => {
-  protocol.definition = pfiProtocolDefinition
-
   const proxy = new DwnProxyProtocols({
     didState
   })

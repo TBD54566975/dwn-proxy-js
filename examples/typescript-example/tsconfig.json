@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+      "strict": false,
+      "strictNullChecks": false,
+      "lib": [
+        "ESNext",
+        "DOM"
+      ],
+      "allowJs": true,
+      "target": "ESNext",
+      "module": "ESNext",
+      "declaration": true,
+      "declarationMap": true,
+      "rootDir": ".",
+      "outDir": "./dist",
+      "sourceMap": true,
+      "moduleResolution": "NodeNext",
+      "resolveJsonModule": true,
+      "esModuleInterop": true
+    },
+    "include": [
+      ".",
+      "tests"
+    ],
+  }

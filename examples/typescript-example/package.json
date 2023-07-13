@@ -1,0 +1,16 @@
+{
+  "name": "dwn-relay-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "tsc && node dist/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tbd54566975/dwn-proxy-js": "^0.0.4"
+  },
+  "type": "module"
+}

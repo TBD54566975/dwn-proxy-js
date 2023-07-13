@@ -15,12 +15,13 @@ const main = async () => {
     didState
   })
 
-  await proxy.install(protocol)
   await proxy.listen(PORT)
+  await proxy.install(protocol)
 }
 
 main()
 
+// ...
 
 // import { ProtocolsConfigure, RecordsQuery, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
 // import { DwnProxy, readReq } from '../dist/esm/main.mjs'
@@ -51,7 +52,7 @@ main()
 
 // const referenceReplace = (obj, replacements = {}) => {
 //   // ensure the protocol definition is in the possible replacements
-//   if (!replacements['#protocolDefinition']) replacements['#protocolDefinition'] = pfiProtocolDefinition
+//   if (!replacements['#definition']) replacements['#definition'] = pfiProtocolDefinition
 
 //   for (const [key, value] of Object.entries(obj)) {
 //     if (typeof value === 'object') {

@@ -2,10 +2,44 @@ import { ProtocolsConfigure, RecordsQuery, RecordsWrite } from '@tbd54566975/dwn
 import { DwnProxy } from './dwn-proxy.js'
 import type { DwnRequest } from './dwn-types.js'
 import type { Request, Response } from 'express'
-import { MarkupDotReference } from './dwn-proxy-markup/markup-dot-reference.js'
 import { Readable } from 'node:stream'
 import type { Readable as IsomorphicReadable } from 'readable-stream'
 import { readReq } from './dwn-http-server.js'
+
+export class MarkupDotReference {
+  static resolveDotDelimited = (obj: any, value: string) => {
+    const propChain = value.split('.').slice(1)
+    let protoValue = obj
+    for (let prop of propChain) {
+      protoValue = protoValue[prop]
+      if (protoValue === undefined) {
+        return false
+      }
+    }
+    return protoValue
+  }
+
+  static referenceReplace = (obj: any, replacements: any): any => {
+    for (const [key, value] of Object.entries(obj)) {
+      if (Array.isArray(value)) {
+        obj[key] = value.map(item => MarkupDotReference.referenceReplace(item, replacements))
+      } else if (typeof value === 'object') {
+        obj[key] = MarkupDotReference.referenceReplace(value, replacements)
+      } else if (typeof value === 'string' && value[0] === '#') {
+        const dotDelimited = value.split('.')
+        if (dotDelimited.length === 1) {
+          if (replacements[value])
+            obj[key] = replacements[value]
+        } else {
+          if (replacements[dotDelimited[0]])
+            obj[key] = MarkupDotReference.resolveDotDelimited(replacements[dotDelimited[0]], value)
+        }
+      }
+    }
+
+    return obj
+  }
+}
 
 const isMatch = (descriptor: any, match: any): boolean => {
   return Object.entries(match).every(([key, value]) => {
@@ -20,7 +54,7 @@ const isMatch = (descriptor: any, match: any): boolean => {
   })
 }
 
-export class DwnProxyMarkup extends DwnProxy {
+export class DwnProxyProtocols extends DwnProxy {
   #action = {
     httpRequest: async (params) => {
       const res = await fetch(params.endpoint, {
@@ -85,6 +119,10 @@ export class DwnProxyMarkup extends DwnProxy {
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
       action.params = MarkupDotReference.referenceReplace(action.params, replacementPool)
+
+      if (action.action === 'replyToDwnRequest()')
+        return action.params
+
       replacementPool['#' + action.id] = await this.#handleAction(action)
     }
 
@@ -92,7 +130,6 @@ export class DwnProxyMarkup extends DwnProxy {
   }
 
   #outbound = async (req: Request, res: Response, actions: Array<any>) => {
-    console.log(req, res, actions)
     const body = await readReq(req)
     let replacementPool = { '#body': body }
 
@@ -118,7 +155,7 @@ export class DwnProxyMarkup extends DwnProxy {
     )
 
     // go ahead and replace any references to the protocol definition
-    MarkupDotReference.referenceReplace(protocol.routes, protocol.definition)
+    MarkupDotReference.referenceReplace(protocol.routes, { '#definition': protocol.definition })
 
     for (const route of protocol.routes) {
       console.log('Configuring route', route.description)

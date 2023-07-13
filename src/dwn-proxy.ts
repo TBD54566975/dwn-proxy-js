@@ -57,15 +57,15 @@ export class DwnProxy {
 
     if (!this.dwn)
       this.dwn = await Dwn.create()
-  }
-
-  async listen() {
-    await this.init()
 
     this.server = new DwnHttpServer({
       dwn     : this.dwn,
       handler : this.#inbound
     })
+  }
+
+  async listen() {
+    await this.init()
 
     this.server.listen(this.options.port, () => {
       console.log(`server listening on port ${this.options.port}`)

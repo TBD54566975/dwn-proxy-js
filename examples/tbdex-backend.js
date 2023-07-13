@@ -66,7 +66,7 @@ const handleRfq = async (req, res) => {
           paymentInstructions           : { payin: { link: 'fake.link.com' } }
         }
       }))
-    })
+    }).then(res => console.log(res.status))
     // .then(res => res.json())
     // .then((body => {
     //   quoteRecordId = body.dwnMessage.quoteRecordId

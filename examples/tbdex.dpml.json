@@ -1,5 +1,5 @@
 {
-  "protocolDefinition": "../path/to/protocol-definition",
+  "definition": "../path/to/protocol-definition",
   "routes": [
     {
       "description": "Inbound Offering query",
@@ -63,9 +63,9 @@
       "match": {
         "interface": "Records",
         "method": "Write",
-        "protocol": "#protocolDefinition.protocol",
+        "protocol": "#definition.protocol",
         "protocolPath": "RFQ",
-        "schema": "#protocolDefinition.types.RFQ.schema"
+        "schema": "#definition.types.RFQ.schema"
       },
       "actions": [
         {
@@ -109,7 +109,7 @@
           "action": "queryRecord()",
           "params": {
             "filter": {
-              "schema": "#protocolDefinition.types.RFQ.schema"
+              "schema": "#definition.types.RFQ.schema"
             }
           }
         },
@@ -120,9 +120,9 @@
           "params": {
             "data": "#body",
             "dataFormat": "application/json",
-            "protocol": "#protocolDefinition.protocol",
+            "protocol": "#definition.protocol",
             "protocolPath": "RFQ/Quote",
-            "schema": "#protocolDefinition.types.Quote.schema",
+            "schema": "#definition.types.Quote.schema",
             "recipient": "#body.to",
             "parentId": "#1.recordId",
             "contextId": "#1.contextId"

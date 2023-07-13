@@ -51,7 +51,7 @@ const handleRfq = async (req, res) => {
   console.log('Waiting a few seconds, then going to fire off a Quote in response...')
   setTimeout(() => {
     console.log('Firing off Quote...')
-    let quoteRecordId = undefined
+    // let quoteRecordId = undefined
     fetch('http://localhost:8080/quote', {
       method : 'PUT',
       body   : JSON.stringify(createMessage({

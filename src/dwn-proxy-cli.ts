@@ -1,27 +1,51 @@
 import yaml from 'js-yaml'
 import fs from 'fs'
-import { ProtocolsConfigure, RecordsQuery, RecordsWrite } from '@tbd54566975/dwn-sdk-js'
+import { homedir } from 'os'
+import { join } from 'path'
+import { ProtocolsConfigure, RecordsQuery, RecordsWrite, SignatureInput } from '@tbd54566975/dwn-sdk-js'
 import { Readable } from 'node:stream'
 import type { Readable as IsomorphicReadable } from 'readable-stream'
 
 import { DwnHttpClient } from './dwn-http-client.js'
 import { DwnProxy } from './dwn-proxy.js'
-import { DidStateWithSignatureInput } from './dwn-types.js'
 import { DwnProxyMarkup } from './dwn-proxy-markup.js'
 import { readReq } from './dwn-http-server.js'
-
-/**
- * todo
- * - read didState from .file
- */
 
 type Config = {
   definition: string | any
   routes: Array<any>
 }
 
-export const main = async (didState: DidStateWithSignatureInput) => {
+export const main = async () => {
+  let did: string, signatureInput: SignatureInput
+  try {
+    const dotfilePath = join(homedir(), '.dwnp')
+    const fileContents = fs.readFileSync(dotfilePath, 'utf-8')
+
+    // Split the contents by newline and parse key-value pairs
+    const lines = fileContents.split('\n')
+    for (const line of lines) {
+      const [key, value] = line.split('=')
+      if (key === 'did') {
+        did = value
+      } else if (key === 'signature_input') {
+        signatureInput = JSON.parse(value)
+      }
+    }
+
+    if (!did || !signatureInput) {
+      throw new Error('Missing required fields in .dwnp file')
+    }
+  } catch (error) {
+    console.error('An error occurred while parsing the .dwnp file:', error)
+    process.exit(1)
+  }
+
   const client = new DwnHttpClient()
+  const didState = {
+    id: did,
+    signatureInput
+  }
   const proxy = new DwnProxy({
     didState
   })

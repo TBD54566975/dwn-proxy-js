@@ -1,5 +1,5 @@
 {
-  "definition": "../path/to/protocol-definition",
+  "definition": "https://raw.githubusercontent.com/TBD54566975/tbdex-protocol/kendall/remote-url-definition/js/src/tbdex.json",
   "routes": [
     {
       "description": "Inbound Offering query",

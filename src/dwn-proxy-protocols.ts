@@ -143,6 +143,8 @@ export class DwnProxyProtocols extends DwnProxy {
   }
 
   async install(protocol: any) {
+    protocol.definition = await new Promise(resolve => fetch(protocol.definition).then(res => resolve(res.json())))
+
     await this.dwn.processMessage(
       this.options.didState!.id,
       (await ProtocolsConfigure.create({

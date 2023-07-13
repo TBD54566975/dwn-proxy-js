@@ -19,12 +19,12 @@ export class DwnProxyMarkup {
     return protoValue
   }
 
-  static replace = (obj: any, replacements: any): any => {
+  static populate = (obj: any, replacements: any): any => {
     for (const [key, value] of Object.entries(obj)) {
       if (Array.isArray(value)) {
-        obj[key] = value.map(item => DwnProxyMarkup.replace(item, replacements))
+        obj[key] = value.map(item => DwnProxyMarkup.populate(item, replacements))
       } else if (typeof value === 'object') {
-        obj[key] = DwnProxyMarkup.replace(value, replacements)
+        obj[key] = DwnProxyMarkup.populate(value, replacements)
       } else if (typeof value === 'string' && value[0] === '#') {
         const dotDelimited = value.split('.')
         if (dotDelimited.length === 1) {
@@ -114,28 +114,28 @@ export class DwnProxyProtocols extends DwnProxy {
   }
 
   #inbound = async (dwnRequest: DwnRequest, actions: Array<any>) => {
-    let replacementPool = { '#dwnRequest': dwnRequest }
+    let populatePool = { '#dwnRequest': dwnRequest }
 
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
-      action.params = DwnProxyMarkup.replace(action.params, replacementPool)
+      action.params = DwnProxyMarkup.populate(action.params, populatePool)
 
       if (action.action === 'replyToDwnRequest()')
         return action.params
 
-      replacementPool['#' + action.id] = await this.#handleAction(action)
+      populatePool['#' + action.id] = await this.#handleAction(action)
     }
 
     throw new Error(`Never replied to client`)
   }
 
   #outbound = async (req: Request, res: Response, actions: Array<any>) => {
-    let replacementPool = { '#body': await readReq(req) }
+    let populatePool = { '#body': await readReq(req) }
 
     for (let action of actions) {
       // we enable previous actions' outputs to be used as inputs to subsequent actions
-      action.params = DwnProxyMarkup.replace(action.params, replacementPool)
-      replacementPool['#' + action.id] = await this.#handleAction(action)
+      action.params = DwnProxyMarkup.populate(action.params, populatePool)
+      populatePool['#' + action.id] = await this.#handleAction(action)
     }
 
     res.status(200)
@@ -154,7 +154,7 @@ export class DwnProxyProtocols extends DwnProxy {
     )
 
     // go ahead and replace any references to the protocol definition
-    DwnProxyMarkup.replace(protocol.routes, { '#definition': protocol.definition })
+    DwnProxyMarkup.populate(protocol.routes, { '#definition': protocol.definition })
 
     for (const route of protocol.routes) {
       console.log('Configuring route', route.description)

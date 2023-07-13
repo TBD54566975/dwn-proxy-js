@@ -1,5 +1,6 @@
-import protocol from './tbdex.dpml.json' assert { type: 'json' }
 import { DwnProxyProtocols } from '../dist/esm/main.mjs'
+import yaml from 'js-yaml'
+import fs from 'fs'
 
 const PORT = 8080
 const didState = {
@@ -12,8 +13,10 @@ const main = async () => {
     didState
   })
 
+  const config = yaml.load(fs.readFileSync('./tbdex.dwnp.yml'))
+
   await proxy.listen(PORT)
-  await proxy.install(protocol)
+  await proxy.install(config)
 }
 
 main()

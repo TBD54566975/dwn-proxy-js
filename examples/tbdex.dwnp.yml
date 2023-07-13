@@ -9,13 +9,13 @@ routes:
     actions:
       - id: "1"
         description: "Fetch offering from backend"
-        action: "httpRequest()"
+        action: "HTTP_REQUEST"
         params:
           method: "GET"
           endpoint: "http://0.0.0.0:3001/tbdex/offers"
       - id: "2"
         description: "Create the DWN record for the offering"
-        action: "createRecordsWriteMessage()"
+        action: "RECORD_WRITE"
         params:
           published: true
           data: "#1"
@@ -23,18 +23,18 @@ routes:
           schema: "https://tbd.website/resources/tbdex/Offering"
       - id: "3"
         description: "Write the offering record to self"
-        action: "processMessage()"
+        action: "PROCESS_MESSAGE"
         params:
           message: "#2"
           data: "#1"
       - id: "4"
         description: "Query for the newly written offering record"
-        action: "processMessage()"
+        action: "PROCESS_MESSAGE"
         params:
           message: "#dwnRequest.message"
       - id: "5"
         description: "Reply to client DWN Request"
-        action: "replyToDwnRequest()"
+        action: "REPLY"
         params:
           reply: "#4"
   - description: "Inbound RFQ"
@@ -48,20 +48,20 @@ routes:
     actions:
       - id: "1"
         description: "PUT fetch the RFQ to the backend"
-        action: "httpRequest()"
+        action: "HTTP_REQUEST"
         params:
           method: "PUT"
           endpoint: "http://0.0.0.0:3001/tbdex/rfq"
           body: "#dwnRequest.data"
       - id: "2"
         description: "Process the inbound DWN Request Message"
-        action: "processMessage()"
+        action: "PROCESS_MESSAGE"
         params:
           message: "#dwnRequest.message"
           data: "#dwnRequest.data"
       - id: "3"
         description: "Reply to client DWN Request"
-        action: "replyToDwnRequest()"
+        action: "REPLY"
         params:
           reply: "#2"
   - description: "Outbound Quote"
@@ -71,13 +71,13 @@ routes:
     actions:
       - id: "1"
         description: "Lookup previous RFQ for subsequent processing"
-        action: "queryRecord()"
+        action: "QUERY_RECORD"
         params:
           filter:
             schema: "#definition.types.RFQ.schema"
       - id: "2"
         description: "Create the DWN record for the quote"
-        action: "createRecordsWriteMessage()"
+        action: "RECORD_WRITE"
         params:
           data: "#body"
           dataFormat: "application/json"
@@ -89,13 +89,13 @@ routes:
           contextId: "#1.contextId"
       - id: "3"
         description: "Write the quote record to self"
-        action: "processMessage()"
+        action: "PROCESS_MESSAGE"
         params:
           message: "#2"
           data: "#body"
       - id: "4"
         description: "Send the quote to Alice"
-        action: "sendDwnRequest()"
+        action: "SEND_DWN_REQUEST"
         params:
           to: "#body.to"
           message: "#2"

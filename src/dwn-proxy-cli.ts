@@ -95,15 +95,15 @@ export const main = async () => {
 
   const handleAction = async (action: any): Promise<any> => {
     switch (action.action) {
-      case 'httpRequest()':
+      case 'HTTP_REQUEST':
         return await httpRequest(action.params)
-      case 'createRecordsWriteMessage()':
+      case 'RECORD_WRITE':
         return await createRecordsWriteMessage(action.params)
-      case 'processMessage()':
+      case 'PROCESS_MESSAGE':
         return await processMessage(action.params)
-      case 'queryRecord()':
+      case 'QUERY_RECORD':
         return await queryRecord(action.params)
-      case 'sendDwnRequest()':
+      case 'SEND_DWN_REQUEST':
         return await sendDwnRequest(action.params)
       default:
         console.error('Unknown action', action.action)
@@ -154,7 +154,7 @@ export const main = async () => {
             // we enable previous actions' outputs to be used as inputs to subsequent actions
             action.params = DwnProxyMarkup.populate(action.params, populatePool)
 
-            if (action.action === 'replyToDwnRequest()')
+            if (action.action === 'REPLY')
               return action.params
 
             populatePool['#' + action.id] = await handleAction(action)

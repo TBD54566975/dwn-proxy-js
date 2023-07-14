@@ -12,8 +12,6 @@ routes:
         params:
           endpoint: "http://0.0.0.0:3001/tbdex/offers"
           published: true
-          dataFormat: "application/json"
-          schema: "https://tbd.website/resources/tbdex/Offering"
   - description: "Inbound RFQ"
     direction: "INBOUND"
     match:
@@ -44,10 +42,9 @@ routes:
         action: "SEND_DWN_MESSAGE"
         params:
           data: "#body"
-          dataFormat: "application/json"
+          schema: "#definition.types.Quote.schema"
           protocol: "#definition.protocol"
           protocolPath: "RFQ/Quote"
-          schema: "#definition.types.Quote.schema"
           recipient: "#body.to"
           parentId: "#1.recordId"
           contextId: "#1.contextId"

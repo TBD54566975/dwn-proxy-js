@@ -75,6 +75,7 @@ export const main = async () => {
   }
 
   const fetchFromBackend = async params => {
+    params.dataFormat = 'application/json' // hard coded :)
     const body = await httpRequest(params)
     const { message } = await RecordsWrite.create({
       ...params,
@@ -100,6 +101,7 @@ export const main = async () => {
   }
 
   const sendDwnMessage = async params => {
+    params.dataFormat = 'application/json' // hard coded :)
     const { message } = await RecordsWrite.create({
       ...params,
       data                        : Buffer.from(JSON.stringify(params.data), 'utf-8'),

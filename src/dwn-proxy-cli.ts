@@ -16,6 +16,16 @@ type Config = {
   routes: Array<any>
 }
 
+const httpRequest = async (params) => {
+  const res = await fetch(params.endpoint, {
+    method : params.method,
+    body   : params.body ? JSON.stringify(params.body) : undefined
+  })
+
+  if (res.headers.has('content-length') && res.headers.get('content-length') !== '0')
+    return await res.json()
+}
+
 export const main = async () => {
   let did: string, signatureInput: SignatureInput
   try {
@@ -52,31 +62,6 @@ export const main = async () => {
 
   await proxy.listen()
 
-  const httpRequest = async (params) => {
-    const res = await fetch(params.endpoint, {
-      method : params.method,
-      body   : params.body ? JSON.stringify(params.body) : undefined
-    })
-
-    if (res.headers.has('content-length') && res.headers.get('content-length') !== '0')
-      return await res.json()
-  }
-
-  const createRecordsWriteMessage = async (params) => {
-    return (await RecordsWrite.create({
-      ...params,
-      data                        : Buffer.from(JSON.stringify(params.data), 'utf-8'),
-      authorizationSignatureInput : didState.signatureInput
-    })).message
-  }
-
-  const processMessage = async (params) => {
-    return await proxy.dwn.processMessage(
-      didState.id,
-      params.message,
-      params.data ? Readable.from(JSON.stringify(params.data)) as IsomorphicReadable : undefined)
-  }
-
   const queryRecord = async (params) => {
     // TODO assumption!
     const message = (await RecordsQuery.create({
@@ -89,25 +74,42 @@ export const main = async () => {
     return entries[entries.length - 1]
   }
 
-  const sendDwnRequest = async (params) => {
-    await client.send(params.to, params.message, JSON.stringify(params.data))
+  const fetchFromBackend = async params => {
+    const body = await httpRequest(params)
+    const { message } = await RecordsWrite.create({
+      ...params,
+      data                        : Buffer.from(JSON.stringify(body), 'utf-8'),
+      authorizationSignatureInput : didState.signatureInput
+    })
+    await proxy.dwn.processMessage(
+      didState.id,
+      message,
+      Readable.from(JSON.stringify(body)) as IsomorphicReadable)
+    const reply =  await proxy.dwn.processMessage(didState.id, params.dwnRequest.message)
+    return { reply }
   }
 
-  const handleAction = async (action: any): Promise<any> => {
-    switch (action.action) {
-      case 'HTTP_REQUEST':
-        return await httpRequest(action.params)
-      case 'RECORD_WRITE':
-        return await createRecordsWriteMessage(action.params)
-      case 'PROCESS_MESSAGE':
-        return await processMessage(action.params)
-      case 'QUERY_RECORD':
-        return await queryRecord(action.params)
-      case 'SEND_DWN_REQUEST':
-        return await sendDwnRequest(action.params)
-      default:
-        console.error('Unknown action', action.action)
-    }
+  const forwardToBackend = async params => {
+    params.body = params.dwnRequest.data
+    await httpRequest(params)
+    const reply = await proxy.dwn.processMessage(
+      didState.id,
+      params.dwnRequest.message,
+      Readable.from(JSON.stringify(params.dwnRequest.data)) as IsomorphicReadable)
+    return { reply }
+  }
+
+  const sendDwnMessage = async params => {
+    const { message } = await RecordsWrite.create({
+      ...params,
+      data                        : Buffer.from(JSON.stringify(params.data), 'utf-8'),
+      authorizationSignatureInput : didState.signatureInput
+    })
+    await proxy.dwn.processMessage(
+      didState.id,
+      message,
+      Readable.from(JSON.stringify(params.data)) as IsomorphicReadable)
+    await client.send(params.recipient, message, JSON.stringify(params.data))
   }
 
   // read the yml config
@@ -153,11 +155,16 @@ export const main = async () => {
           for (let action of route.actions) {
             // we enable previous actions' outputs to be used as inputs to subsequent actions
             action.params = DwnProxyMarkup.populate(action.params, populatePool)
+            action.params = { ...action.params, dwnRequest }
 
             if (action.action === 'REPLY')
               return action.params
-
-            populatePool['#' + action.id] = await handleAction(action)
+            else if (action.action === 'FETCH_FROM_BACKEND')
+              return await fetchFromBackend(action.params)
+            else if (action.action === 'FORWARD_TO_BACKEND')
+              return await forwardToBackend(action.params)
+            else
+              throw new Error(`Inbound action not supported ${action.action}`)
           }
 
           throw new Error(`Never replied to client`)
@@ -171,7 +178,13 @@ export const main = async () => {
           for (let action of route.actions) {
             // we enable previous actions' outputs to be used as inputs to subsequent actions
             action.params = DwnProxyMarkup.populate(action.params, populatePool)
-            populatePool['#' + action.id] = await handleAction(action)
+
+            if (action.action === 'QUERY_RECORD')
+              populatePool['#' + action.id] = await queryRecord(action.params)
+            else if (action.action === 'SEND_DWN_MESSAGE')
+              await sendDwnMessage(action.params)
+            else
+              throw new Error(`Inbound action not supported ${action.action}`)
           }
 
           res.status(200)

@@ -48,3 +48,25 @@ routes:
           recipient: "#body.to"
           parentId: "#1.recordId"
           contextId: "#1.contextId"
+  - description: "Outbound Order Status"
+    direction: "OUTBOUND"
+    method: "PUT"
+    path: "/order-status"
+    actions:
+      - id: "1"
+        description: "Lookup previous Quote for subsequent processing"
+        action: "QUERY_RECORD"
+        params:
+          filter:
+            # TODO use sql syntax w/ TBDexMessage to find rfq
+            schema: "#definition.types.Quote.schema"
+      - description: "Send the Order Status to Alice"
+        action: "SEND_DWN_MESSAGE"
+        params:
+          data: "#body"
+          schema: "#definition.types.OrderStatus.schema"
+          protocol: "#definition.protocol"
+          protocolPath: "RFQ/Quote/OrderStatus"
+          recipient: "#body.to"
+          parentId: "#1.recordId"
+          contextId: "#1.contextId"

@@ -16,6 +16,7 @@ interface IMatchHandler {
 }
 
 export type DwnProxyOptions = Partial<{
+  port: number
   serviceEndpoint: string
   didState: DidStateWithSignatureInput
 }>
@@ -47,19 +48,23 @@ export class DwnProxy {
 
   addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
 
-  async listen(port: number) {
-    if (!this.options.didState)
-      this.options.didState = await generateDidState(this.options.serviceEndpoint ?? `http://0.0.0.0:${port}`)
+  async listen() {
+    if (!this.options.port)
+      this.options.port = 8080
 
-    this.dwn = await Dwn.create()
+    if (!this.options.didState)
+      this.options.didState = await generateDidState(this.options.serviceEndpoint ?? `http://0.0.0.0:${this.options.port}`)
+
+    if (!this.dwn)
+      this.dwn = await Dwn.create()
 
     this.server = new DwnHttpServer({
       dwn     : this.dwn,
       handler : this.#inbound
     })
 
-    this.server.listen(port, () => {
-      console.log(`server listening on port ${port}`)
+    this.server.listen(this.options.port, () => {
+      console.log(`server listening on port ${this.options.port}`)
     })
 
     this.client = new DwnHttpClient()

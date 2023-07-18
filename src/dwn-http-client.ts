@@ -15,7 +15,7 @@ export class DwnHttpClient {
     return (service.serviceEndpoint as DwnServiceEndpoint).nodes[0]
   }
 
-  send = async (target: string, message: RecordsWriteMessage, data?: string): Promise<DwnResponse> => {
+  send = async (target: string, message: RecordsWriteMessage, payload?: string): Promise<DwnResponse> => {
     const endpoint = await this.#resolveEndpoint(target)
 
     const fetchOpts = {
@@ -24,9 +24,9 @@ export class DwnHttpClient {
         'dwn-request': JSON.stringify(createRequest(target, message))
       }
     }
-    if (data) {
+    if (payload) {
       fetchOpts.headers['content-type'] = 'application/octet-stream'
-      fetchOpts['body'] = data
+      fetchOpts['body'] = payload
     }
 
     const res =  await fetch(endpoint, fetchOpts)

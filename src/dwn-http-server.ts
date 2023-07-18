@@ -43,11 +43,11 @@ export class DwnHttpServer {
         let dwnRequest: DwnRequest
         try {
           dwnRequest = parseRequest(JSON.parse(req.headers['dwn-request'] as string))
-          if (!dwnRequest.data) {
+          if (!dwnRequest.payload) {
             const contentLength = req.headers['content-length']
             const transferEncoding = req.headers['transfer-encoding']
             const requestDataStream = (parseInt(contentLength) > 0 || transferEncoding !== undefined) ? req : undefined
-            dwnRequest.data = requestDataStream
+            dwnRequest.payload = requestDataStream
           }
         } catch (err) {
           // todo integrate w/ web5-js expected response
@@ -59,12 +59,12 @@ export class DwnHttpServer {
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
 
         if (!dwnResponse) {
-          const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.data as any)
+          const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.payload as any)
           res.json(reply)
-        } else if (dwnResponse.data) {
+        } else if (dwnResponse.payload) {
           res.setHeader('content-type', 'application/octet-stream')
           res.setHeader('dwn-response', JSON.stringify(createResponse(dwnResponse)))
-          dwnResponse.data.pipe(res)
+          dwnResponse.payload.pipe(res)
         } else {
           res.json(createResponse(dwnResponse))
         }

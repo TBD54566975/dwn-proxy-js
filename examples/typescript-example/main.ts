@@ -19,7 +19,7 @@ class MyProxy extends DwnProxy {
     // ...
     // example: maybe process the message using the DWN instance
     const { id } = this.options.didState
-    await this.dwn.processMessage(id, request.message, request.data)
+    await this.dwn.processMessage(id, request.message, request.payload)
   }
 
   async handlerB(request: DwnRequest) {
@@ -27,8 +27,8 @@ class MyProxy extends DwnProxy {
     // ...
     // example: maybe forward the request onto your backend
     await fetch('/your-backend', {
-      method: 'POST',
-      body: JSON.stringify(request)
+      method : 'POST',
+      body   : JSON.stringify(request)
     })
   }
 
@@ -38,7 +38,7 @@ class MyProxy extends DwnProxy {
     // do whatever you want
     // ...
     // maybe send the message onto a user
-    await this.client.send(body.to, body.dwnRecordsWrite, JSON.stringify(body.data))
+    await this.client.send(body.to, body.dwnRecordsWrite, JSON.stringify(body.payload))
   }
 
   async apiD(req: Request, res: Response) {

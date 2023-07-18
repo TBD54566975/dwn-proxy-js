@@ -36,8 +36,8 @@ export class DwnProxy {
     for (const { match, handler } of this.#handlers) {
       const isMatch = match(request)
       if (isMatch) {
-        if (request.data) // go ahead and read the data into an object
-          request.data = await readReq(request.data)
+        if (request.payload) // go ahead and read the payload into an object
+          request.payload = await readReq(request.payload)
         return await handler(request)
       }
     }

@@ -7,12 +7,12 @@ export type DwnMessage = RecordsQueryMessage | RecordsWriteMessage
 export type DwnRequest = {
   target?: string,
   message: DwnMessage,
-  data?: Readable | any
+  payload?: Readable | any
 }
 
 export type DwnResponse = {
   reply: MessageReply
-  data?: Readable
+  payload?: Readable
 }
 
 export type DidStateWithSignatureInput = {

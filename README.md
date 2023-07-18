@@ -49,7 +49,7 @@ class MyProxy extends DwnProxy {
         // ...
         // example: maybe process the message using the DWN instance
         const { id } = this.options.didState;
-        await this.dwn.processMessage(id, request.message, request.data);
+        await this.dwn.processMessage(id, request.message, request.payload);
     }
     async handlerB(request) {
         // do whatever you want

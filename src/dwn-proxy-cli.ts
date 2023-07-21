@@ -172,7 +172,7 @@ export const main = async () => {
           throw new Error(`Never replied to client`)
         }
       )
-    } else if (route.interface === 'Restul') {
+    } else if (route.interface === 'Restful') {
       proxy.server.api.put(
         route.path, async (req, res) => {
           let populatePool = { '#body': await readReq(req) }

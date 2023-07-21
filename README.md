@@ -6,6 +6,8 @@ Making DWN integrations with traditional backend services easy.
 
 `dwn-proxy-js` is a bidirectional proxy between [Decentralized Web Nodes](https://identity.foundation/decentralized-web-node/spec) and your web services.
 
+`cli/` is a command line utility for executing a DWN Proxy strictly via the command line, see [cli/README.md](./cli/README.md) 
+
 * [Design](#design)
 * [Usage](#usage)
   * [`new DwnProxy(options)`](#new-dwnproxyoptions)

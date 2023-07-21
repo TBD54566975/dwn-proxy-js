@@ -6,10 +6,46 @@ import { ProtocolsConfigure, RecordsQuery, RecordsWrite, SignatureInput } from '
 import { Readable } from 'node:stream'
 import type { Readable as IsomorphicReadable } from 'readable-stream'
 
-import { DwnHttpClient } from './dwn-http-client.js'
-import { DwnProxy } from './dwn-proxy.js'
-import { DwnProxyMarkup } from './dwn-proxy-markup.js'
-import { readReq } from './dwn-http-server.js'
+import { DwnHttpClient } from '../../src/dwn-http-client.js'
+import { DwnProxy } from '../../src/dwn-proxy.js'
+import { readReq } from '../../src/dwn-http-server.js'
+
+export class DwnProxyMarkup {
+  static resolveDotDelimited = (obj: any, value: string) => {
+    const propChain = value.split('.').slice(1)
+    let protoValue = obj
+    for (let prop of propChain) {
+      protoValue = protoValue[prop]
+      if (protoValue === undefined) {
+        return false
+      }
+    }
+    return protoValue
+  }
+
+  static populate = (obj: any, replacements: any): any => {
+    for (const [key, value] of Object.entries(obj)) {
+      if (value) {
+        if (Array.isArray(value)) {
+          obj[key] = value.map(item => DwnProxyMarkup.populate(item, replacements))
+        } else if (typeof value === 'object') {
+          obj[key] = DwnProxyMarkup.populate(value, replacements)
+        } else if (typeof value === 'string' && value[0] === '#') {
+          const dotDelimited = value.split('.')
+          if (dotDelimited.length === 1) {
+            if (replacements[value])
+              obj[key] = replacements[value]
+          } else {
+            if (replacements[dotDelimited[0]])
+              obj[key] = DwnProxyMarkup.resolveDotDelimited(replacements[dotDelimited[0]], value)
+          }
+        }
+      }
+    }
+
+    return obj
+  }
+}
 
 type Config = {
   definition: string | any
@@ -26,7 +62,7 @@ const httpRequest = async (params) => {
     return await res.json()
 }
 
-export const main = async () => {
+const main = async () => {
   let did: string, signatureInput: SignatureInput
   try {
     const dotfilePath = join(homedir(), '.dwnp')
@@ -197,3 +233,5 @@ export const main = async () => {
     }
   }
 }
+
+main()

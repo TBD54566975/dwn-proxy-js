@@ -1,0 +1,4 @@
+#!/bin/bash
+
+npm run build
+node dist/esm/main.mjs "$@"

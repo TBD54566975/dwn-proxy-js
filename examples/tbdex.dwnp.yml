@@ -1,7 +1,7 @@
 definition: "https://raw.githubusercontent.com/TBD54566975/tbdex-protocol/kendall/remote-url-definition/js/src/tbdex.json"
 routes:
   - description: "Inbound Offering query"
-    direction: "INBOUND"
+    interface: "DwnRequest"
     match:
       interface: "Records"
       method: "Query"
@@ -13,7 +13,7 @@ routes:
           endpoint: "http://0.0.0.0:3001/tbdex/offers"
           published: true
   - description: "Inbound RFQ"
-    direction: "INBOUND"
+    interface: "DwnRequest"
     match:
       interface: "Records"
       method: "Write"
@@ -27,7 +27,7 @@ routes:
           method: "PUT"
           endpoint: "http://0.0.0.0:3001/tbdex/rfq"
   - description: "Outbound Quote"
-    direction: "OUTBOUND"
+    interface: "Restful"
     method: "PUT"
     path: "/quote"
     actions:
@@ -49,7 +49,7 @@ routes:
           parentId: "#1.recordId"
           contextId: "#1.contextId"
   - description: "Outbound Order Status"
-    direction: "OUTBOUND"
+    interface: "Restful"
     method: "PUT"
     path: "/order-status"
     actions:

@@ -32,20 +32,6 @@ export class DwnProxy {
     this.options = options
   }
 
-  #inbound = async (request: DwnRequest): Promise<DwnResponse | void> => {
-    // [kw] could use a has map of sorts instead of iterating every time
-    for (const { match, handler } of this.#handlers) {
-      const isMatch = match(request)
-      if (isMatch) {
-        if (request.payload) // go ahead and read the payload into an object
-          request.payload = await readReq(request.payload)
-        return await handler(request)
-      }
-    }
-
-    throw new Error('Unable to find middleware')
-  }
-
   addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
 
   async listen() {
@@ -60,7 +46,19 @@ export class DwnProxy {
 
     this.server = new DwnHttpServer({
       dwn     : this.dwn,
-      handler : this.#inbound
+      handler : async (request: DwnRequest): Promise<DwnResponse | void> => {
+        // [kw] could use a has map of sorts instead of iterating every time
+        for (const { match, handler } of this.#handlers) {
+          const isMatch = match(request)
+          if (isMatch) {
+            if (request.payload) // go ahead and read the payload into an object
+              request.payload = await readReq(request.payload)
+            return await handler(request)
+          }
+        }
+
+        throw new Error('Unable to find middleware')
+      }
     })
 
     this.server.listen(this.options.port, () => {

@@ -138,7 +138,7 @@ export const main = async () => {
   for (const route of config.routes) {
     console.log('Configuring route', route.description)
 
-    if (route.direction === 'INBOUND') {
+    if (route.interface === 'DwnRequest') {
       proxy.addHandler(
         dwnRequest =>
           Object.entries(route.match).every(([key, value]) => {
@@ -172,7 +172,7 @@ export const main = async () => {
           throw new Error(`Never replied to client`)
         }
       )
-    } else if (route.direction === 'OUTBOUND') {
+    } else if (route.interface === 'Restul') {
       proxy.server.api.put(
         route.path, async (req, res) => {
           let populatePool = { '#body': await readReq(req) }
@@ -193,7 +193,7 @@ export const main = async () => {
           res.end()
         })
     } else {
-      throw new Error(`Route direction unsupported ${route.direction}`)
+      throw new Error(`Route interface unsupported ${route.interface}`)
     }
   }
 }

@@ -2,7 +2,7 @@ import { DwnHttpClient } from './dwn-http-client.js'
 import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import { generateDidState } from './dwn-did.js'
 import type { DwnRequest, DwnResponse, DidStateWithSignatureInput } from './dwn-types.js'
-import { Dwn } from '@tbd54566975/dwn-sdk-js'
+import { Dwn, MessageStore, DataStore, EventLog } from '@tbd54566975/dwn-sdk-js'
 
 interface IMatch {
   (req: DwnRequest): boolean
@@ -19,6 +19,14 @@ export type DwnProxyOptions = Partial<{
   port: number
   serviceEndpoint: string
   didState: DidStateWithSignatureInput
+  dwn: Partial<{
+    instance: Dwn,
+    store: {
+      messageStore: MessageStore,
+      dataStore: DataStore,
+      eventLog: EventLog
+    }
+  }>
 }>
 
 export class DwnProxy {
@@ -41,8 +49,15 @@ export class DwnProxy {
     if (!this.options.didState)
       this.options.didState = await generateDidState(this.options.serviceEndpoint ?? `http://0.0.0.0:${this.options.port}`)
 
+    if (this.options.dwn?.instance)
+      this.dwn = this.options.dwn.instance
+
     if (!this.dwn)
-      this.dwn = await Dwn.create()
+      this.dwn = await Dwn.create({
+        messageStore : this.options.dwn?.store?.messageStore,
+        dataStore    : this.options.dwn?.store?.dataStore,
+        eventLog     : this.options.dwn?.store?.eventLog
+      })
 
     this.server = new DwnHttpServer({
       dwn     : this.dwn,

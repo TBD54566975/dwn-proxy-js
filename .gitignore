@@ -153,3 +153,4 @@ dist
 .svelte-kit
 
 .DS_STORE
+compiled/

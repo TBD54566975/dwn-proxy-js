@@ -71,7 +71,6 @@
     "esbuild": "0.16.17",
     "eslint": "8.39.0",
     "mocha": "^10.2.0",
-    "mysql2": "^3.5.2",
     "rimraf": "4.4.0",
     "sinon": "^15.2.0",
     "typescript": "5.0.4"

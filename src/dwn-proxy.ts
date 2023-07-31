@@ -39,11 +39,32 @@ export class DwnProxy {
   dwn: Dwn
   #handlers: Array<IMatchHandler> = []
 
-  constructor(options: DwnProxyOptions) {
+  private constructor(options: DwnProxyOptions) {
     this.options = options
     if (this.options.dwn?.instance)
       this.dwn = this.options.dwn.instance
     this.client = new DwnHttpClient()
+  }
+
+  static async create(options: DwnProxyOptions): Promise<DwnProxy> {
+    if (!options.dwn) options.dwn = {}
+
+    if (!options.dwn.store)
+      options.dwn.store = {
+        messageStore : new MessageStoreLevel(),
+        dataStore    : new DataStoreLevel(),
+        eventLog     : new EventLogLevel()
+      }
+
+    if (!options.dwn.instance)
+      options.dwn.instance = await Dwn.create({
+        messageStore : options.dwn.store.messageStore,
+        dataStore    : options.dwn.store.dataStore,
+        eventLog     : options.dwn.store.eventLog,
+        tenantGate   : options.dwn?.tenantGate
+      })
+
+    return new DwnProxy(options)
   }
 
   addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
@@ -54,14 +75,6 @@ export class DwnProxy {
 
     if (!this.options.didState)
       this.options.didState = await generateDidState(this.options.serviceEndpoint ?? `http://0.0.0.0:${this.options.port}`)
-
-    if (!this.dwn)
-      this.dwn = await Dwn.create({
-        messageStore : this.options.dwn?.store?.messageStore ?? new MessageStoreLevel(),
-        dataStore    : this.options.dwn?.store?.dataStore ?? new DataStoreLevel(),
-        eventLog     : this.options.dwn?.store?.eventLog ?? new EventLogLevel(),
-        tenantGate   : this.options.dwn?.tenantGate
-      })
 
     this.server = new DwnHttpServer({
       dwn     : this.dwn,

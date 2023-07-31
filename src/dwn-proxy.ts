@@ -3,7 +3,7 @@ import { DwnHttpServer } from './dwn-http-server.js'
 import { generateDidState } from './dwn-did.js'
 import type { DwnRequest, DwnResponse, DidStateWithSignatureInput } from './dwn-types.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
-import type { MessageStore, DataStore, EventLog } from '@tbd54566975/dwn-sdk-js'
+import type { MessageStore, DataStore, EventLog, TenantGate } from '@tbd54566975/dwn-sdk-js'
 import { MessageStoreLevel, DataStoreLevel, EventLogLevel } from '@tbd54566975/dwn-sdk-js/stores'
 
 interface IMatch {
@@ -27,7 +27,8 @@ export type DwnProxyOptions = Partial<{
       messageStore: MessageStore,
       dataStore: DataStore,
       eventLog: EventLog
-    }
+    },
+    tenantGate: TenantGate
   }>
 }>
 
@@ -58,7 +59,8 @@ export class DwnProxy {
       this.dwn = await Dwn.create({
         messageStore : this.options.dwn?.store?.messageStore ?? new MessageStoreLevel(),
         dataStore    : this.options.dwn?.store?.dataStore ?? new DataStoreLevel(),
-        eventLog     : this.options.dwn?.store?.eventLog ?? new EventLogLevel()
+        eventLog     : this.options.dwn?.store?.eventLog ?? new EventLogLevel(),
+        tenantGate   : this.options.dwn?.tenantGate
       })
 
     this.server = new DwnHttpServer({

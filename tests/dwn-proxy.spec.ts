@@ -12,4 +12,10 @@ describe('DwnProxy', () => {
     await Promise.resolve()
     expect(true).to.be.true
   })
+
+  it('Should support developer-defined tenant gate', async () => {
+    console.log('todo')
+    await Promise.resolve()
+    expect(true).to.be.true
+  })
 })

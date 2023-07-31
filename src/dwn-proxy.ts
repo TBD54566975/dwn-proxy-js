@@ -1,5 +1,5 @@
 import { DwnHttpClient } from './dwn-http-client.js'
-import { DwnHttpServer, readReq } from './dwn-http-server.js'
+import { DwnHttpServer } from './dwn-http-server.js'
 import { generateDidState } from './dwn-did.js'
 import type { DwnRequest, DwnResponse, DidStateWithSignatureInput } from './dwn-types.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
@@ -40,6 +40,9 @@ export class DwnProxy {
 
   constructor(options: DwnProxyOptions) {
     this.options = options
+    if (this.options.dwn?.instance)
+      this.dwn = this.options.dwn.instance
+    this.client = new DwnHttpClient()
   }
 
   addHandler = (match: IMatch, handler: IHandler) => this.#handlers.push({ match, handler })
@@ -50,9 +53,6 @@ export class DwnProxy {
 
     if (!this.options.didState)
       this.options.didState = await generateDidState(this.options.serviceEndpoint ?? `http://0.0.0.0:${this.options.port}`)
-
-    if (this.options.dwn?.instance)
-      this.dwn = this.options.dwn.instance
 
     if (!this.dwn)
       this.dwn = await Dwn.create({
@@ -66,12 +66,8 @@ export class DwnProxy {
       handler : async (request: DwnRequest): Promise<DwnResponse | void> => {
         // [kw] could use a has map of sorts instead of iterating every time
         for (const { match, handler } of this.#handlers) {
-          const isMatch = match(request)
-          if (isMatch) {
-            if (request.payload) // go ahead and read the payload into an object
-              request.payload = await readReq(request.payload)
+          if (match(request))
             return await handler(request)
-          }
         }
 
         throw new Error('Unable to find middleware')
@@ -81,7 +77,5 @@ export class DwnProxy {
     this.server.listen(this.options.port, () => {
       console.log(`server listening on port ${this.options.port}`)
     })
-
-    this.client = new DwnHttpClient()
   }
 }

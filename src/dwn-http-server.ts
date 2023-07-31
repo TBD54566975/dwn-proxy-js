@@ -47,7 +47,8 @@ export class DwnHttpServer {
             const contentLength = req.headers['content-length'] ?? '0'
             const transferEncoding = req.headers['transfer-encoding']
             const requestDataStream = (parseInt(contentLength) > 0 || transferEncoding !== undefined) ? req : undefined
-            dwnRequest.payload = requestDataStream
+            if (requestDataStream)
+              dwnRequest.payload = await readReq(requestDataStream)
           }
         } catch (err) {
           // todo integrate w/ web5-js expected response

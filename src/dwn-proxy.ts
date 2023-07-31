@@ -2,7 +2,9 @@ import { DwnHttpClient } from './dwn-http-client.js'
 import { DwnHttpServer, readReq } from './dwn-http-server.js'
 import { generateDidState } from './dwn-did.js'
 import type { DwnRequest, DwnResponse, DidStateWithSignatureInput } from './dwn-types.js'
-import { Dwn, MessageStore, DataStore, EventLog } from '@tbd54566975/dwn-sdk-js'
+import { Dwn } from '@tbd54566975/dwn-sdk-js'
+import type { MessageStore, DataStore, EventLog } from '@tbd54566975/dwn-sdk-js'
+import { MessageStoreLevel, DataStoreLevel, EventLogLevel } from '@tbd54566975/dwn-sdk-js/stores'
 
 interface IMatch {
   (req: DwnRequest): boolean
@@ -54,9 +56,9 @@ export class DwnProxy {
 
     if (!this.dwn)
       this.dwn = await Dwn.create({
-        messageStore : this.options.dwn?.store?.messageStore,
-        dataStore    : this.options.dwn?.store?.dataStore,
-        eventLog     : this.options.dwn?.store?.eventLog
+        messageStore : this.options.dwn?.store?.messageStore ?? new MessageStoreLevel(),
+        dataStore    : this.options.dwn?.store?.dataStore ?? new DataStoreLevel(),
+        eventLog     : this.options.dwn?.store?.eventLog ?? new EventLogLevel()
       })
 
     this.server = new DwnHttpServer({

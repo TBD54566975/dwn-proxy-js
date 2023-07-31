@@ -44,7 +44,7 @@ export class DwnHttpServer {
         try {
           dwnRequest = parseRequest(JSON.parse(req.headers['dwn-request'] as string))
           if (!dwnRequest.payload) {
-            const contentLength = req.headers['content-length']
+            const contentLength = req.headers['content-length'] ?? '0'
             const transferEncoding = req.headers['transfer-encoding']
             const requestDataStream = (parseInt(contentLength) > 0 || transferEncoding !== undefined) ? req : undefined
             dwnRequest.payload = requestDataStream
@@ -59,6 +59,7 @@ export class DwnHttpServer {
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
 
         if (!dwnResponse) {
+          if (!dwnRequest.target) throw new Error('DwnRequest must have a target')
           const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.payload as any)
           res.json(reply)
         } else if (dwnResponse.payload) {

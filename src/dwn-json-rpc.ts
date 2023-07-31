@@ -19,6 +19,7 @@ export interface JsonRpcResponse {
 }
 
 export const parseRequest = (req: JsonRpcRequest): DwnRequest => {
+  if (!req.params) throw new Error('JSON-RPC must include the DwnRequest in the params property')
   return req.params
 }
 

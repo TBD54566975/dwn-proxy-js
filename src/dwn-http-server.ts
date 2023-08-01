@@ -53,17 +53,14 @@ export class DwnHttpServer {
           }
         } catch (err) {
           console.error('Failed to parse dwn-request or payload', err)
-          const error = createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, err.message)
-          return res.status(400).json(error)
+          return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, err.message))
         }
 
         // N.B. validate the dwn-request JSON format
         try {
           const errors = validateDwnRequestSchema(dwnRequest)
-          if (errors.length > 0) {
-            return res.status(400).json(
-              createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', errors))
-          }
+          if (errors.length > 0)
+            return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', errors))
         } catch(err) {
           console.error('Failed to validate dwn-request JSON schema', err)
           return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, err.message))
@@ -75,7 +72,7 @@ export class DwnHttpServer {
           if (validationError)
             return res.status(200).json(createJsonRpcResponse({ reply: validationError }))
         } catch(err) {
-          console.error('Failed to validate tenant', err)
+          console.error('Failed to validate DWN tenant', err)
           return res.status(500).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.InternalError, err.message))
         }
 

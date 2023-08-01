@@ -1,4 +1,5 @@
-import type { DwnMessage, DwnRequest, DwnResponse } from './dwn-types.js'
+import type { DwnMessage } from './dwn-types.js'
+import type { DwnRequest, DwnResponse } from './dwn-request-response.js'
 
 export type JsonRpcId = string | number | null
 export type JsonRpcParams = DwnRequest // todo

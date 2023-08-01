@@ -1,7 +1,7 @@
 import express from 'express'
 import type { Express, Request, Response } from 'express'
 import cors from 'cors'
-import { DwnRequest, DwnResponse } from './dwn-types.js'
+import type { DwnRequest, DwnResponse } from './dwn-request-response.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
 import { parseRequest, createResponse } from './dwn-json-rpc.js'
 
@@ -50,12 +50,17 @@ export class DwnHttpServer {
             if (requestDataStream)
               dwnRequest.payload = await readReq(requestDataStream)
           }
+
+          // todo validate dwn-request JSON
         } catch (err) {
           // todo integrate w/ web5-js expected response
           console.error('Failed to parse client request', err)
           res.status(400).end(err.message)
           return
         }
+
+        // todo validate dwn tenant
+        // todo validate dwn message integrity
 
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
 

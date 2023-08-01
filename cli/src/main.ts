@@ -6,6 +6,7 @@ import { ProtocolsConfigure, RecordsQuery, RecordsWrite, SignatureInput } from '
 import { Readable } from 'node:stream'
 import type { Readable as IsomorphicReadable } from 'readable-stream'
 
+// todo since this is a different project I should use the npm packaging system
 import { DwnHttpClient } from '../../src/dwn-http-client.js'
 import { DwnProxy } from '../../src/dwn-proxy.js'
 import { readReq } from '../../src/dwn-http-server.js'
@@ -92,7 +93,7 @@ const main = async () => {
     id: did,
     signatureInput
   }
-  const proxy = new DwnProxy({
+  const proxy = await DwnProxy.create({
     didState
   })
 

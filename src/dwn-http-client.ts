@@ -33,7 +33,7 @@ export class DwnHttpClient {
 
     let dwnResponse: DwnResponse
     if (res.headers.has('dwn-response'))
-      dwnResponse = parseResponse(JSON.parse(res.headers.get('dwn-response')))
+      dwnResponse = parseResponse(JSON.parse(res.headers.get('dwn-response') as string))
     else
       dwnResponse = parseResponse(JSON.parse(await res.text()))
 

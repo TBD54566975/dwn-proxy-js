@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import type { DwnMessage } from './dwn-types.js'
 import type { DwnRequest, DwnResponse } from './dwn-request-response.js'
 
@@ -54,8 +55,8 @@ export const parseJsonRpcRequest = (req: JsonRpcRequest): DwnRequest => {
 export const createJsonRpcRequest = (target: string, message: DwnMessage): JsonRpcRequest => {
   return {
     jsonrpc : '2.0',
-    id      : '', // TODO
-    method  : 'dwn.processMessage',
+    id      : uuidv4(),
+    method  : 'dwn.processMessage', // hard coded
     params  : {
       target,
       message
@@ -74,9 +75,21 @@ export const parseJsonRpcErrorResponse = (res: JsonRpcResponse): JsonRpcError | 
 export const createJsonRpcResponse = (res: DwnResponse): JsonRpcResponse => {
   return {
     jsonrpc : '2.0',
-    id      : '',
+    id      : uuidv4(),
     result  : {
       reply: res.reply
+    }
+  }
+}
+
+export const createJsonRpcErrorResponse = (code: JsonRpcErrorCodes, message: string, data?: any): JsonRpcResponse => {
+  return {
+    jsonrpc : '2.0',
+    id      : uuidv4(),
+    error   : {
+      code,
+      message,
+      data
     }
   }
 }

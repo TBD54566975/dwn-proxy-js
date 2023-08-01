@@ -32,8 +32,7 @@ export class DwnHttpServer {
     this.api.use(cors({ exposedHeaders: 'dwn-response' }))
     this.api.get('/health', (_, res) => res.json({ ok: true }))
 
-    this.api.get('/', (_req, res) => {
-      // return a plain text string
+    this.api.get('/', (_, res) => {
       res.setHeader('content-type', 'text/plain')
       return res.send('please use a web5 client, for example: https://github.com/TBD54566975/web5-js ')
     })

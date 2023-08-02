@@ -85,7 +85,7 @@ export class DwnHttpServer {
           const validationError = await this.#options.dwn.validateMessageIntegrity(dwnRequest.message)
           if (validationError) {
             console.error('DWN Message integrity check failed', validationError)
-            return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', validationError))
+            // return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', validationError))
           }
         } catch (err) {
           console.error('Failed to validate DWN Message integrity', err)

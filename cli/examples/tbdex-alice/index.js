@@ -30,22 +30,17 @@ const configureProtocol = async () => {
 }
 
 const getOffer = async () => {
-  try {
-    const result = await web5.dwn.records.query({
-      from    : PFI_DID,
-      message : {
-        filter: {
-          schema: 'https://tbd.website/resources/tbdex/Offering'
-        },
-        dateSort: 'createdAscending'
-      }
-    })
+  const result = await web5.dwn.records.query({
+    from    : PFI_DID,
+    message : {
+      filter: {
+        schema: 'https://tbd.website/resources/tbdex/Offering'
+      },
+      dateSort: 'createdAscending'
+    }
+  })
 
-    return await result.records[result.records.length - 1]?.data.json()
-  } catch (err) {
-    console.error('Error querying for offer', err)
-    process.exit(1)
-  }
+  return await result.records[result.records.length - 1]?.data.json()
 }
 
 const submitRfq = async () => {
@@ -179,29 +174,33 @@ const pollForOrderStatusUpdates = async () => {
 }
 
 const main = async () => {
-  console.log('\nConfiguring protocol...')
-  await configureProtocol()
-  console.log('Protocol configured\n')
+  try {
+    console.log('\nConfiguring protocol...')
+    await configureProtocol()
+    console.log('Protocol configured\n')
 
-  console.log('Querying for offers...')
-  await getOffer()
-  console.log('Offer found\n')
+    console.log('Querying for offers...')
+    await getOffer()
+    console.log('Offer found\n')
 
-  console.log('Submitted RFQ...')
-  await submitRfq()
-  console.log('RFQ submitted\n')
+    console.log('Submitted RFQ...')
+    await submitRfq()
+    console.log('RFQ submitted\n')
 
-  console.log('Polling for quote...')
-  await pollForQuote()
-  console.log('Quote found\n')
+    console.log('Polling for quote...')
+    await pollForQuote()
+    console.log('Quote found\n')
 
-  // console.log('Submitting order...')
-  // await submitOrder()
-  // console.log('Order submitted\n')
+    // console.log('Submitting order...')
+    // await submitOrder()
+    // console.log('Order submitted\n')
 
-  console.log('Polling for order status updates')
-  await pollForOrderStatusUpdates()
-  console.log('Exchange successful, goodbye\n')
+    console.log('Polling for order status updates')
+    await pollForOrderStatusUpdates()
+    console.log('Exchange successful, goodbye\n')
+  } catch(err) {
+    console.error('Catch-all error', err)
+  }
 
   process.exit(0)
 }

@@ -122,7 +122,15 @@ const main = async () => {
       didState.id,
       message,
       Readable.from(JSON.stringify(body)) as unknown as IsomorphicReadable)
+
+    // todo if I don't include the messageTimestamp then I get "/descriptor: must have required property 'messageTimestamp'"
+    // but if I do include the messageTimestamp, as I'm doing below, then I get a "RecordsQuery: must NOT have additional properties"
+    params.dwnRequest.message = {
+      ...params.dwnRequest.message,
+      messageTimestamp: message.descriptor.messageTimestamp // todo wtf
+    }
     const reply =  await proxy.dwn.processMessage(didState.id, params.dwnRequest.message)
+    console.log('kw dbg', reply)
     return { reply }
   }
 

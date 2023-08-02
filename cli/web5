@@ -2,4 +2,4 @@
 
 # npm i 
 npm run build
-node dist/esm/main.mjs "$@"
+node dist/cli/src/main.js "$@"

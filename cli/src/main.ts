@@ -121,7 +121,7 @@ const main = async () => {
     await proxy.dwn.processMessage(
       didState.id,
       message,
-      Readable.from(JSON.stringify(body)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(body)) as unknown as IsomorphicReadable)
     const reply =  await proxy.dwn.processMessage(didState.id, params.dwnRequest.message)
     return { reply }
   }
@@ -132,7 +132,7 @@ const main = async () => {
     const reply = await proxy.dwn.processMessage(
       didState.id,
       params.dwnRequest.message,
-      Readable.from(JSON.stringify(params.dwnRequest.data)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(params.dwnRequest.data)) as unknown as IsomorphicReadable)
     return { reply }
   }
 
@@ -146,7 +146,7 @@ const main = async () => {
     await proxy.dwn.processMessage(
       didState.id,
       message,
-      Readable.from(JSON.stringify(params.data)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(params.data)) as unknown as IsomorphicReadable)
     await client.send(params.recipient, message, JSON.stringify(params.data))
   }
 

@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "description": "Command line interface for all thangs web5",
   "type": "module",
-  "main": "./dist/cjs/main.cjs",
-  "module": "./dist/esm/main.mjs",
+  "main": "./dist/main.js",
   "types": "./dist/types/main.d.ts",
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -28,13 +27,6 @@
     "dist",
     "src"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/esm/main.mjs",
-      "require": "./dist/cjs/main.cjs",
-      "types": "./dist/types/main.d.ts"
-    }
-  },
   "keywords": [
     "decentralized",
     "decentralized-applications",

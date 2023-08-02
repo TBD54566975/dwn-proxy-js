@@ -64,7 +64,7 @@ const httpRequest = async (params) => {
 }
 
 const main = async () => {
-  let did: string, signatureInput: SignatureInput
+  let did: string | undefined, signatureInput: SignatureInput | undefined
   try {
     const dotfilePath = join(homedir(), '.dwnp')
     const fileContents = fs.readFileSync(dotfilePath, 'utf-8')
@@ -80,9 +80,8 @@ const main = async () => {
       }
     }
 
-    if (!did || !signatureInput) {
+    if (!did || !signatureInput)
       throw new Error('Missing required fields in .dwnp file')
-    }
   } catch (error) {
     console.error('An error occurred while parsing the .dwnp file:', error)
     process.exit(1)

@@ -106,6 +106,7 @@ const main = async () => {
       dateSort                    : 'createdAscending'
     })).message
     const { entries } = await proxy.dwn.processMessage(didState.id, message)
+    console.log('kw dbg', entries)
     if (!entries) return undefined
     return entries[entries.length - 1]
   }
@@ -139,7 +140,8 @@ const main = async () => {
     const reply = await proxy.dwn.processMessage(
       didState.id,
       params.dwnRequest.message,
-      Readable.from(JSON.stringify(params.dwnRequest.data)) as unknown as IsomorphicReadable)
+      Readable.from(JSON.stringify(params.dwnRequest.payload)) as unknown as IsomorphicReadable)
+    console.log('kw dbg', reply)
     return { reply }
   }
 
@@ -223,6 +225,8 @@ const main = async () => {
           for (let action of route.actions) {
             // we enable previous actions' outputs to be used as inputs to subsequent actions
             action.params = DwnProxyMarkup.populate(action.params, populatePool)
+
+            console.log('kw dbg', action)
 
             if (action.action === 'QUERY_RECORD')
               populatePool['#' + action.id] = await queryRecord(action.params)

@@ -72,22 +72,22 @@ const handleRfq = async (req, res) => {
     }
   })
 
-  console.log('Waiting a few seconds, then going to fire off a Quote in response...')
+  console.log('Waiting a few seconds...')
   setTimeout(() => {
-    console.log('Firing off Quote...')
+    console.log('Sending Quote...')
     fetch('http://localhost:8080/quote', {
       method : 'PUT',
       body   : JSON.stringify(quoteTbdexMessage)
     })
       .then(() => {
         setTimeout(() => {
-          console.log('firing off PENDING')
+          console.log('Sending PENDING')
           fetch('http://localhost:8080/order-status', {
             method : 'PUT',
             body   : JSON.stringify(orderStatusPendingTbdexMessage)
           }).then(() => {
             setTimeout(() => {
-              console.log('firing off COMPLETED')
+              console.log('Sending COMPLETED')
               fetch('http://localhost:8080/order-status', {
                 method : 'PUT',
                 body   : JSON.stringify(orderStatusCompletedTbdexMessage)

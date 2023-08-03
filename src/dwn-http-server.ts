@@ -85,6 +85,8 @@ export class DwnHttpServer {
           const validationError = await this.#options.dwn.validateMessageIntegrity(dwnRequest.message)
           if (validationError) {
             console.error('DWN Message integrity check failed', validationError)
+            // TODO [kw] temporarily commenting-out b/c waiting for web5-js to
+            // support "/descriptor: must have required property 'messageTimestamp'"
             // return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', validationError))
           }
         } catch (err) {
@@ -92,9 +94,7 @@ export class DwnHttpServer {
           return res.status(500).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.InternalError, err.message))
         }
 
-        console.log('kw dbg', this.#options.handler)
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
-        console.log('kw dbg', dwnResponse)
 
         if (!dwnResponse) {
           const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.payload as any)

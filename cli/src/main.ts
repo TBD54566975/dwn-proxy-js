@@ -130,12 +130,11 @@ const main = async () => {
       messageTimestamp: message.descriptor.messageTimestamp // todo wtf
     }
     const reply =  await proxy.dwn.processMessage(didState.id, params.dwnRequest.message)
-    console.log('kw dbg', reply)
     return { reply }
   }
 
   const forwardToBackend = async params => {
-    params.body = params.dwnRequest.data
+    params.body = params.dwnRequest.payload
     await httpRequest(params)
     const reply = await proxy.dwn.processMessage(
       didState.id,

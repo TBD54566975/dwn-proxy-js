@@ -13,7 +13,7 @@ const CloseRules = {
   ],
 }
 
-const pfiProtocolDefinition = {
+export const pfiProtocolDefinition = {
   protocol : 'https://tbd.website/protocols/tbdex',
   types    : {
     RFQ: {
@@ -72,7 +72,7 @@ function createTbdexId(typeNamespace) {
   return `${ID_NAMESPACE}:${typeNamespace}:ulid()`
 }
 
-const createMessage = (opts) => {
+export const createMessage = (opts) => {
   var _a, _b, _c, _d, _e, _f
   const id = createTbdexId(opts.type)
   const threadId = (_b = (_a = opts.last) === null || _a === void 0 ? void 0 : _a.threadId) !== null && _b !== void 0 ? _b : id
@@ -90,7 +90,3 @@ const createMessage = (opts) => {
   }
 }
 
-module.exports = {
-  pfiProtocolDefinition,
-  createMessage
-}

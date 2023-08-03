@@ -1,6 +1,6 @@
-const http = require('http')
-const url = require('url')
-const { createMessage } = require('./tbdex-protocol.js')
+import http from 'http'
+import url from 'url'
+import { createMessage } from '@tbd54566975/tbdex'
 
 const readReqBody = async req =>
   new Promise(resolve => {
@@ -42,55 +42,60 @@ const handleOffering = async (req, res) => {
 
 const handleRfq = async (req, res) => {
   console.log('Handling RFQ!')
-  const body = await readReqBody(req)
-  const threadId = body.threadId
-  const alice = body.from
-  console.log(threadId)
+  const rfqTbdexMessage = await readReqBody(req)
+  const quoteTbdexMessage = createMessage({
+    last : rfqTbdexMessage,
+    to   : rfqTbdexMessage.from,
+    type : 'quote',
+    body : {
+      expiryTime                    : new Date().toISOString(),
+      totalFee                      : '100',
+      amount                        : '1000',
+      paymentPresentationRequestJwt : '',
+      paymentInstructions           : { payin: { link: 'fake.link.com' } }
+    }
+  })
+  const orderStatusPendingTbdexMessage = createMessage({
+    last : quoteTbdexMessage,
+    to   : rfqTbdexMessage.from,
+    type : 'orderstatus',
+    body : {
+      orderStatus: 'PENDING'
+    }
+  })
+  const orderStatusCompletedTbdexMessage = createMessage({
+    last : quoteTbdexMessage,
+    to   : rfqTbdexMessage.from,
+    type : 'orderstatus',
+    body : {
+      orderStatus: 'COMPLETED'
+    }
+  })
 
   console.log('Waiting a few seconds, then going to fire off a Quote in response...')
   setTimeout(() => {
     console.log('Firing off Quote...')
     fetch('http://localhost:8080/quote', {
       method : 'PUT',
-      body   : JSON.stringify(createMessage({
-        last : { threadId },
-        to   : alice,
-        type : 'quote',
-        body : {
-          expiryTime                    : new Date().toISOString(),
-          totalFee                      : '100',
-          amount                        : '1000',
-          paymentPresentationRequestJwt : '',
-          paymentInstructions           : { payin: { link: 'fake.link.com' } }
-        }
-      }))
+      body   : JSON.stringify(quoteTbdexMessage)
     })
       .then(() => {
-        const createOrderStatus = orderStatus => createMessage({
-          last : { threadId },
-          to   : alice,
-          type : 'orderStatus',
-          body : {
-            orderStatus
-          }
-        })
-
         setTimeout(() => {
           console.log('firing off PENDING')
           fetch('http://localhost:8080/order-status', {
             method : 'PUT',
-            body   : JSON.stringify(createOrderStatus('PENDING'))
+            body   : JSON.stringify(orderStatusPendingTbdexMessage)
           }).then(() => {
             setTimeout(() => {
               console.log('firing off COMPLETED')
               fetch('http://localhost:8080/order-status', {
                 method : 'PUT',
-                body   : JSON.stringify(createOrderStatus('COMPLETE'))
+                body   : JSON.stringify(orderStatusCompletedTbdexMessage)
               })
             }, 4500)
           })
         }, 4500)
-    })
+      })
   }, 4500)
 
   res.statusCode = 202

@@ -1,0 +1,16 @@
+{
+  "name": "tbdex-pfi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tbd54566975/tbdex": "^0.0.17"
+  }
+}

@@ -64,7 +64,7 @@ const httpRequest = async (params) => {
 }
 
 const main = async () => {
-  let did: string, signatureInput: SignatureInput
+  let did: string | undefined, signatureInput: SignatureInput | undefined
   try {
     const dotfilePath = join(homedir(), '.dwnp')
     const fileContents = fs.readFileSync(dotfilePath, 'utf-8')
@@ -80,9 +80,8 @@ const main = async () => {
       }
     }
 
-    if (!did || !signatureInput) {
+    if (!did || !signatureInput)
       throw new Error('Missing required fields in .dwnp file')
-    }
   } catch (error) {
     console.error('An error occurred while parsing the .dwnp file:', error)
     process.exit(1)
@@ -107,6 +106,7 @@ const main = async () => {
       dateSort                    : 'createdAscending'
     })).message
     const { entries } = await proxy.dwn.processMessage(didState.id, message)
+    console.log('kw dbg', entries)
     if (!entries) return undefined
     return entries[entries.length - 1]
   }
@@ -122,18 +122,26 @@ const main = async () => {
     await proxy.dwn.processMessage(
       didState.id,
       message,
-      Readable.from(JSON.stringify(body)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(body)) as unknown as IsomorphicReadable)
+
+    // todo if I don't include the messageTimestamp then I get "/descriptor: must have required property 'messageTimestamp'"
+    // but if I do include the messageTimestamp, as I'm doing below, then I get a "RecordsQuery: must NOT have additional properties"
+    params.dwnRequest.message = {
+      ...params.dwnRequest.message,
+      messageTimestamp: message.descriptor.messageTimestamp // todo wtf
+    }
     const reply =  await proxy.dwn.processMessage(didState.id, params.dwnRequest.message)
     return { reply }
   }
 
   const forwardToBackend = async params => {
-    params.body = params.dwnRequest.data
+    params.body = params.dwnRequest.payload
     await httpRequest(params)
     const reply = await proxy.dwn.processMessage(
       didState.id,
       params.dwnRequest.message,
-      Readable.from(JSON.stringify(params.dwnRequest.data)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(params.dwnRequest.payload)) as unknown as IsomorphicReadable)
+    console.log('kw dbg', reply)
     return { reply }
   }
 
@@ -147,7 +155,7 @@ const main = async () => {
     await proxy.dwn.processMessage(
       didState.id,
       message,
-      Readable.from(JSON.stringify(params.data)) as IsomorphicReadable)
+      Readable.from(JSON.stringify(params.data)) as unknown as IsomorphicReadable)
     await client.send(params.recipient, message, JSON.stringify(params.data))
   }
 
@@ -217,6 +225,8 @@ const main = async () => {
           for (let action of route.actions) {
             // we enable previous actions' outputs to be used as inputs to subsequent actions
             action.params = DwnProxyMarkup.populate(action.params, populatePool)
+
+            console.log('kw dbg', action)
 
             if (action.action === 'QUERY_RECORD')
               populatePool['#' + action.id] = await queryRecord(action.params)

@@ -1,7 +1,7 @@
 import { RecordsWriteMessage } from '@tbd54566975/dwn-sdk-js'
 import { DidIonApi, DwnServiceEndpoint } from '@tbd54566975/dids'
-import { createRequest, parseResponse } from './dwn-json-rpc.js'
-import { DwnResponse } from './dwn-types.js'
+import { createJsonRpcRequest, parseJsonRpcErrorResponse, parseJsonRpcResponse } from './dwn-json-rpc.js'
+import type { DwnResponse } from './dwn-request-response.js'
 
 export class DwnHttpClient {
   // TODO did resolver cache member variable
@@ -21,7 +21,7 @@ export class DwnHttpClient {
     const fetchOpts = {
       method  : 'POST',
       headers : {
-        'dwn-request': JSON.stringify(createRequest(target, message))
+        'dwn-request': JSON.stringify(createJsonRpcRequest(target, message))
       }
     }
     if (payload) {
@@ -31,11 +31,13 @@ export class DwnHttpClient {
 
     const res =  await fetch(endpoint, fetchOpts)
 
-    let dwnResponse: DwnResponse
-    if (res.headers.has('dwn-response'))
-      dwnResponse = parseResponse(JSON.parse(res.headers.get('dwn-response') as string))
-    else
-      dwnResponse = parseResponse(JSON.parse(await res.text()))
+    const jsonRpcResponse = JSON.parse(
+      res.headers.has('dwn-response') ? res.headers.get('dwn-response') as string : await res.text())
+
+    const dwnResponse = parseJsonRpcResponse(jsonRpcResponse)
+
+    if (!dwnResponse)
+      throw new Error(`DwnResponse returned error ${JSON.stringify(parseJsonRpcErrorResponse(jsonRpcResponse))}`)
 
     return dwnResponse
   }

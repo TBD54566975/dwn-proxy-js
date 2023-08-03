@@ -1,9 +1,9 @@
 import express from 'express'
 import type { Express, Request, Response } from 'express'
 import cors from 'cors'
-import { DwnRequest, DwnResponse } from './dwn-types.js'
+import { validateDwnRequestSchema, type DwnRequest, type DwnResponse } from './dwn-request-response.js'
 import { Dwn } from '@tbd54566975/dwn-sdk-js'
-import { parseRequest, createResponse } from './dwn-json-rpc.js'
+import {  createJsonRpcErrorResponse, createJsonRpcResponse, JsonRpcErrorCodes, parseJsonRpcRequest } from './dwn-json-rpc.js'
 
 export interface IHandler {
   (req: DwnRequest): Promise<DwnResponse | void>
@@ -32,8 +32,7 @@ export class DwnHttpServer {
     this.api.use(cors({ exposedHeaders: 'dwn-response' }))
     this.api.get('/health', (_, res) => res.json({ ok: true }))
 
-    this.api.get('/', (_req, res) => {
-      // return a plain text string
+    this.api.get('/', (_, res) => {
       res.setHeader('content-type', 'text/plain')
       return res.send('please use a web5 client, for example: https://github.com/TBD54566975/web5-js ')
     })
@@ -41,8 +40,10 @@ export class DwnHttpServer {
     this.api.post('/', async (req: Request, res: Response) => {
       try {
         let dwnRequest: DwnRequest
+
+        // N.B. parse out the dwn-request from the JSON-RPC abstraction within the http request
         try {
-          dwnRequest = parseRequest(JSON.parse(req.headers['dwn-request'] as string))
+          dwnRequest = parseJsonRpcRequest(JSON.parse(req.headers['dwn-request'] as string))
           if (!dwnRequest.payload) {
             const contentLength = req.headers['content-length'] ?? '0'
             const transferEncoding = req.headers['transfer-encoding']
@@ -51,30 +52,63 @@ export class DwnHttpServer {
               dwnRequest.payload = await readReq(requestDataStream)
           }
         } catch (err) {
-          // todo integrate w/ web5-js expected response
-          console.error('Failed to parse client request', err)
-          res.status(400).end(err.message)
-          return
+          console.error('Failed to parse dwn-request or payload', err)
+          return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, err.message))
+        }
+
+        // N.B. validate the dwn-request JSON format
+        try {
+          const errors = validateDwnRequestSchema(dwnRequest)
+          if (errors.length > 0) {
+            console.error('dwn-request JSON schema validation failed', errors)
+            return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', errors))
+          }
+        } catch(err) {
+          console.error('Failed to validate dwn-request JSON schema', err)
+          return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, err.message))
+        }
+
+        // N.B. validate the DWN tenante
+        try {
+          const validationError = await this.#options.dwn.validateTenant(dwnRequest.target)
+          if (validationError) {
+            console.error('tenant validation failed', validationError)
+            return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', validationError))
+          }
+        } catch(err) {
+          console.error('Failed to validate DWN tenant', err)
+          return res.status(500).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.InternalError, err.message))
+        }
+
+        // N.B. validate the DWN Message integrity
+        try {
+          const validationError = await this.#options.dwn.validateMessageIntegrity(dwnRequest.message)
+          if (validationError) {
+            console.error('DWN Message integrity check failed', validationError)
+            // TODO [kw] temporarily commenting-out b/c waiting for web5-js to
+            // support "/descriptor: must have required property 'messageTimestamp'"
+            // return res.status(400).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.BadRequest, 'validation error', validationError))
+          }
+        } catch (err) {
+          console.error('Failed to validate DWN Message integrity', err)
+          return res.status(500).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.InternalError, err.message))
         }
 
         const dwnResponse = this.#options.handler ? await this.#options.handler(dwnRequest) : undefined
 
         if (!dwnResponse) {
-          if (!dwnRequest.target) throw new Error('DwnRequest must have a target')
           const reply = await this.#options.dwn.processMessage(dwnRequest.target, dwnRequest.message, dwnRequest.payload as any)
-          res.json(reply)
+          res.json(createJsonRpcResponse({ reply }))
         } else if (dwnResponse.payload) {
           res.setHeader('content-type', 'application/octet-stream')
-          res.setHeader('dwn-response', JSON.stringify(createResponse(dwnResponse)))
+          res.setHeader('dwn-response', JSON.stringify(createJsonRpcResponse(dwnResponse)))
           dwnResponse.payload.pipe(res)
         } else {
-          res.json(createResponse(dwnResponse))
+          res.json(createJsonRpcResponse(dwnResponse))
         }
       } catch (err) {
-        // todo integrate w/ web5-js expected response
-        console.error('Failed to process message', err)
-        res.status(500).end(err.message)
-        return
+        console.error('Catch-all failed to process DWN Message', err)
+        return res.status(500).json(createJsonRpcErrorResponse(JsonRpcErrorCodes.InternalError, err.message))
       }
     })
   }
